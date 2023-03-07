@@ -74,25 +74,28 @@ export class Rook extends Piece {
     this.icon = <RookIcon piece={this} />;
   }
 
-  // TODO: needs to stop being valid when it hits a square after a filled one
   moveIsValid(targetSquare: BoardSquare, board: Board): boolean {
     const targetSqrRowLabel = targetSquare.label[1];
     const targetSqrColLabel = targetSquare.label[0];
     const currentSqrRowLabel = board[this.currentSqr].label[1];
     const currentSqrColLabel = board[this.currentSqr].label[0];
-    const currentRow = Object.values(board).filter(sqr => sqr.label[1] === currentSqrRowLabel);
-    const currentCol = Object.values(board).filter(sqr => sqr.label[0] === currentSqrColLabel);
-    // let obstructed = false;
-
-    // if (currentRow.find((sqr: BoardSquare) => sqr.piece && sqr.piece.currentSqr !== this.currentSqr)) {
-    //   if 
-    // }
+    const currentRow = Object.values(board).filter((sqr: BoardSquare) => sqr.label[1] === currentSqrRowLabel);
+    const currentCol = Object.values(board).filter((sqr: BoardSquare) => sqr.label[0] === currentSqrColLabel);
+    const obstructingRightRowPiece = currentRow.find((sqr: BoardSquare) => sqr.piece && sqr.id > this.currentSqr);
+    const obstructingLeftRowPiece = currentRow.find((sqr: BoardSquare) => sqr.piece && sqr.id < this.currentSqr);
+    const obstructingAboveColPiece = currentCol.find((sqr: BoardSquare) => sqr.piece && sqr.id > this.currentSqr);
+    const obstructingBelowColPiece = currentCol.find((sqr: BoardSquare) => sqr.piece && sqr.id < this.currentSqr);
 
     return (
       targetSquare.piece?.color !== this.color 
     ) && (
       targetSqrColLabel === currentSqrColLabel
       || targetSqrRowLabel === currentSqrRowLabel
+    ) && (
+      !(targetSquare.id > obstructingRightRowPiece?.id)
+      && !(targetSquare.id > obstructingAboveColPiece?.id)
+      && !(targetSquare.id < obstructingLeftRowPiece?.id)
+      && !(targetSquare.id < obstructingBelowColPiece?.id)
     );
   }
 }
