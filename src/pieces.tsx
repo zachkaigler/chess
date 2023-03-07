@@ -28,28 +28,30 @@ export class Pawn extends Piece {
   }
 
   // TODO: account for diagonal capturing and squares that are taken
-  moveIsValid(targetSquare: BoardSquare): boolean {
+  moveIsValid(targetSquare: BoardSquare, board: Board): boolean {
     switch (this.color) {
       case 'white':
         if (this.currentSqrId === this.startingSqrId) {
+          if (board[this.currentSqrId + 8].piece) return false;
           if (
-            targetSquare.id === this.currentSqrId + 8
-            || targetSquare.id === this.currentSqrId + 16
+            targetSquare.id === this.currentSqrId + 8 && !targetSquare.piece
+            || targetSquare.id === this.currentSqrId + 16 && !targetSquare.piece
           ) {
             return true;
           } else {
             return false;
           }
-        } else if (targetSquare.id === this.currentSqrId + 8) {
+        } else if (targetSquare.id === this.currentSqrId + 8 && !targetSquare.piece) {
           return true;
         } else {
           return false;
         }
       case 'black':
         if (this.currentSqrId === this.startingSqrId) {
+          if (board[this.currentSqrId - 8].piece) return false;
           if (
-            targetSquare.id === this.currentSqrId - 8
-            || targetSquare.id === this.currentSqrId - 16
+            targetSquare.id === this.currentSqrId - 8 && !targetSquare.piece
+            || targetSquare.id === this.currentSqrId - 16 && !targetSquare.piece
           ) {
             return true;
           } else {
