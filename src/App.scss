@@ -1,0 +1,35 @@
+.App {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.Chess__Board {
+  display: grid;
+  grid-template-columns: repeat(8, max-content);
+  grid-template-rows: repeat(8, max-content);
+  border: 1px solid rgb(80, 80, 80);
+}
+
+.Chess__Square {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh / 8 - .25rem);
+  max-height: calc(100vw / 8 - .25rem);
+  width: auto;
+  max-width: calc(100vw / 8 - .25rem);
+  aspect-ratio: 1 / 1;
+
+  &.dark {
+    background-color: rgb(80, 80, 80);
+    color: white;
+  }
+
+  &.light {
+    background-color: white;
+    color: black;
+  }
+}
