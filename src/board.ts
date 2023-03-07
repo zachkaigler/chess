@@ -53,8 +53,10 @@ const getStartingPiece = (id: number) => {
 
   if (rank === 2) return new Pawn(id, 'white');
   if (rank === 7) return new Pawn(id, 'black');
-  if (id === 27) return new Rook(id, 'black');
-  if (id === 38) return new Knight(id, 'black');
+  if (id === 1 || id === 8) return new Rook(id, 'white');
+  if (id === 57 || id === 64) return new Rook(id, 'black');
+  if (id === 2 || id === 7) return new Knight(id, 'white');
+  if (id === 58 || id === 63) return new Knight(id, 'black');
 };
 
 export const generateBoard = () => {

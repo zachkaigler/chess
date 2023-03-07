@@ -78,28 +78,32 @@ export class Rook extends Piece {
   }
 
   moveIsValid(targetSquare: BoardSquare, board: Board): boolean {
-    const targetSqrRankLabel = targetSquare.label[1];
-    const targetSqrColLabel = targetSquare.label[0];
-    const currentSqrIdRankLabel = board[this.currentSqrId].label[1];
-    const currentSqrIdColLabel = board[this.currentSqrId].label[0];
-    const currentRank = Object.values(board).filter((sqr: BoardSquare) => sqr.label[1] === currentSqrIdRankLabel);
-    const currentCol = Object.values(board).filter((sqr: BoardSquare) => sqr.label[0] === currentSqrIdColLabel);
-    const obstructingRightRankPiece = currentRank.find((sqr: BoardSquare) => sqr.piece && sqr.id > this.currentSqrId);
-    const obstructingLeftRankPiece = currentRank.find((sqr: BoardSquare) => sqr.piece && sqr.id < this.currentSqrId);
-    const obstructingAboveColPiece = currentCol.find((sqr: BoardSquare) => sqr.piece && sqr.id > this.currentSqrId);
-    const obstructingBelowColPiece = currentCol.find((sqr: BoardSquare) => sqr.piece && sqr.id < this.currentSqrId);
     const targetSquareRank = getRankById(targetSquare.id);
+    const targetSquareCol = getColBySquare(targetSquare);
     const currentSquareRank = getRankById(this.currentSqrId);
     const currentSquareCol = getColBySquare(board[this.currentSqrId]);
-    const targetSquareCol = getColBySquare(targetSquare);
+
+    const currentRank = Object.values(board).filter((sqr: BoardSquare) => getRankById(sqr.id) === currentSquareRank);
+    const currentCol = Object.values(board).filter((sqr: BoardSquare) => getColBySquare(sqr) === currentSquareCol);
+
+    const piecesOnSameRankToRight = currentRank.filter((sqr: BoardSquare) => sqr.piece && sqr.id > this.currentSqrId);
+    const piecesOnSameRankToLeft = currentRank.filter((sqr: BoardSquare) => sqr.piece && sqr.id < this.currentSqrId);
+    const piecesOnSameColAbove = currentCol.filter((sqr: BoardSquare) => sqr.piece && sqr.id > this.currentSqrId);
+    const piecesOnSameColBelow = currentCol.filter((sqr: BoardSquare) => sqr.piece && sqr.id < this.currentSqrId);
+
+    const obstructingRightRankPiece = piecesOnSameRankToRight.sort()[0];
+    const obstructingLeftRankPiece = piecesOnSameRankToLeft.sort()[piecesOnSameRankToLeft.length - 1];
+    const obstructingAboveColPiece = piecesOnSameColAbove.sort()[0];
+    const obstructingBelowColPiece = piecesOnSameColBelow.sort()[piecesOnSameColBelow.length - 1];
+
     const spacesShareCol = currentSquareCol === targetSquareCol;
     const spacesShareRank = targetSquareRank === currentSquareRank;
 
     return (
       targetSquare.piece?.color !== this.color 
     ) && (
-      targetSqrColLabel === currentSqrIdColLabel
-      || targetSqrRankLabel === currentSqrIdRankLabel
+      targetSquareCol === currentSquareCol
+      || targetSquareRank === currentSquareRank
     ) && (
       !((targetSquare.id > obstructingRightRankPiece?.id) && spacesShareRank)
       && !((targetSquare.id > obstructingAboveColPiece?.id) && spacesShareCol)
