@@ -1,9 +1,9 @@
 import React from 'react'
 import { useDrag } from 'react-dnd';
-import { Rook } from '../../../pieces';
+import { Knight } from '../../../pieces';
 
 interface KnightIconProps {
-  piece: Rook;
+  piece: Knight;
 }
 
 const KnightIcon: React.FC<KnightIconProps> = ({ piece }) => {

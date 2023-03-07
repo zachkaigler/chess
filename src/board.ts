@@ -1,4 +1,4 @@
-import { Piece, Pawn, Rook } from "./pieces";
+import { Piece, Pawn, Rook, Knight } from "./pieces";
 
 export interface BoardSquare {
   id: number;
@@ -10,7 +10,7 @@ export interface Board {
   [key: number]: BoardSquare;
 }
 
-const getRankById = (id: number): number => {
+export const getRankById = (id: number): number => {
   if (id <= 8) return 1;
   if (id >= 9 && id <= 16) return 2;
   if (id >= 17 && id <= 24) return 3;
@@ -20,6 +20,8 @@ const getRankById = (id: number): number => {
   if (id >= 49 && id <= 56) return 7;
   else return 8;
 };
+
+export const getColBySquare = (square: BoardSquare): string => square.label[0];
 
 const getSquareInfo = (id: number): string => {
   const labelKey: { [key: number]: string } = {
@@ -52,6 +54,7 @@ const getStartingPiece = (id: number) => {
   if (rank === 2) return new Pawn(id, 'white');
   if (rank === 7) return new Pawn(id, 'black');
   if (id === 27) return new Rook(id, 'black');
+  if (id === 30) return new Knight(id, 'black');
 };
 
 export const generateBoard = () => {
@@ -71,16 +74,6 @@ export const generateBoard = () => {
 };
 
 export const convertBoardToMatrix = (board: Board) => (
-  // [
-  //   [board[57], board[58], board[59], board[60], board[61], board[62], board[63], board[64]],
-  //   [board[49], board[50], board[51], board[52], board[53], board[54], board[55], board[56]],
-  //   [board[41], board[42], board[43], board[44], board[45], board[46], board[47], board[48]],
-  //   [board[33], board[34], board[35], board[36], board[37], board[38], board[39], board[40]],
-  //   [board[25], board[26], board[27], board[28], board[29], board[30], board[31], board[32]],
-  //   [board[17], board[18], board[19], board[20], board[21], board[22], board[23], board[24]],
-  //   [board[9], board[10], board[11], board[12], board[13], board[14], board[15], board[16]],
-  //   [board[1], board[2], board[3], board[4], board[5], board[6], board[7], board[8]],
-  // ].flat()
   [
     [...Object.values(board).slice(56, 64)],
     [...Object.values(board).slice(48, 56)],

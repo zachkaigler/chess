@@ -14,8 +14,8 @@ function App() {
   const movePiece = useCallback((piece: Pawn, targetSquare: BoardSquare) => {
     setGame({
       ...game,
-      [piece.currentSqr]: {
-        ...game[piece.currentSqr],
+      [piece.currentSqrId]: {
+        ...game[piece.currentSqrId],
         piece: undefined,
       },
       [targetSquare.id]: {
@@ -23,7 +23,7 @@ function App() {
         piece,
       }
     })
-    piece.currentSqr = targetSquare.id;
+    piece.currentSqrId = targetSquare.id;
   }, [game, setGame]);
 
   return (
