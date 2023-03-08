@@ -1,10 +1,8 @@
 import { BoardSquare, Board, getRankById, getColBySquare } from "./board";
+import BishopIcon from "./components/pieces/BishopIcon/BishopIcon";
 import KnightIcon from "./components/pieces/KnightIcon/KnightIcon";
 import PawnIcon from "./components/pieces/PawnIcon/PawnIcon";
 import RookIcon from "./components/pieces/RookIcon/RookIcon";
-
-// moving 1 square forward for white is +8 to id
-// moving 1 square forward for black is -8 to id
 
 export class Piece {
   color: 'white' | 'black';
@@ -62,34 +60,23 @@ export class Pawn extends Piece {
         } else {
           return false;
         }
-    }
-  }
-}
+    };
+  };
+};
 
-export class Rook extends Piece {
-  constructor(startingSqrId: number, color: 'white' | 'black') {
-    super();
-    this.color = color;
-    this.startingSqrId = startingSqrId;
-    this.currentSqrId = startingSqrId;
-    this.abb = 'R';
-    this.name = 'rook';
-    this.icon = <RookIcon piece={this} />;
-  }
-
-  moveIsValid(targetSquare: BoardSquare, board: Board): boolean {
+const checkRookRules = (targetSquare: BoardSquare, board: Board, piece: Piece) => {
     const targetSquareRank = getRankById(targetSquare.id);
     const targetSquareCol = getColBySquare(targetSquare);
-    const currentSquareRank = getRankById(this.currentSqrId);
-    const currentSquareCol = getColBySquare(board[this.currentSqrId]);
+    const currentSquareRank = getRankById(piece.currentSqrId);
+    const currentSquareCol = getColBySquare(board[piece.currentSqrId]);
 
     const currentRank = Object.values(board).filter((sqr: BoardSquare) => getRankById(sqr.id) === currentSquareRank);
     const currentCol = Object.values(board).filter((sqr: BoardSquare) => getColBySquare(sqr) === currentSquareCol);
 
-    const piecesOnSameRankToRight = currentRank.filter((sqr: BoardSquare) => sqr.piece && sqr.id > this.currentSqrId);
-    const piecesOnSameRankToLeft = currentRank.filter((sqr: BoardSquare) => sqr.piece && sqr.id < this.currentSqrId);
-    const piecesOnSameColAbove = currentCol.filter((sqr: BoardSquare) => sqr.piece && sqr.id > this.currentSqrId);
-    const piecesOnSameColBelow = currentCol.filter((sqr: BoardSquare) => sqr.piece && sqr.id < this.currentSqrId);
+    const piecesOnSameRankToRight = currentRank.filter((sqr: BoardSquare) => sqr.piece && sqr.id > piece.currentSqrId);
+    const piecesOnSameRankToLeft = currentRank.filter((sqr: BoardSquare) => sqr.piece && sqr.id < piece.currentSqrId);
+    const piecesOnSameColAbove = currentCol.filter((sqr: BoardSquare) => sqr.piece && sqr.id > piece.currentSqrId);
+    const piecesOnSameColBelow = currentCol.filter((sqr: BoardSquare) => sqr.piece && sqr.id < piece.currentSqrId);
 
     const obstructingRightRankPiece = piecesOnSameRankToRight.sort()[0];
     const obstructingLeftRankPiece = piecesOnSameRankToLeft.sort()[piecesOnSameRankToLeft.length - 1];
@@ -100,7 +87,7 @@ export class Rook extends Piece {
     const spacesShareRank = targetSquareRank === currentSquareRank;
 
     return (
-      targetSquare.piece?.color !== this.color 
+      targetSquare.piece?.color !== piece.color 
     ) && (
       targetSquareCol === currentSquareCol
       || targetSquareRank === currentSquareRank
@@ -110,6 +97,66 @@ export class Rook extends Piece {
       && !((targetSquare.id < obstructingLeftRankPiece?.id) && spacesShareRank)
       && !((targetSquare.id < obstructingBelowColPiece?.id)  && spacesShareCol)
     );
+};
+
+export class Rook extends Piece {
+  constructor(startingSqrId: number, color: 'white' | 'black') {
+    super();
+    this.color = color;
+    this.startingSqrId = startingSqrId;
+    this.currentSqrId = startingSqrId;
+    this.abb = 'R';
+    this.name = 'rook';
+    this.icon = <RookIcon piece={this} />;
+  };
+
+  moveIsValid(targetSquare: BoardSquare, board: Board): boolean {
+    return checkRookRules(targetSquare, board, this);
+  };
+};
+
+const checkBishopRules = (targetSquare: BoardSquare, board: Board, piece: Piece) => {
+  const rightDiagMemberSquares = Object.values(board).filter((sqr: BoardSquare) => Math.abs(sqr.id - piece.currentSqrId) % 9 === 0);
+  const leftDiagMemberSquares = Object.values(board).filter((sqr: BoardSquare) => Math.abs(sqr.id - piece.currentSqrId) % 7 === 0);
+
+  const piecesOnRightDiagAbove = rightDiagMemberSquares.filter((sqr: BoardSquare) => sqr.piece && sqr.id > piece.currentSqrId);
+  const piecesOnRightDiagBelow = rightDiagMemberSquares.filter((sqr: BoardSquare) => sqr.piece && sqr.id < piece.currentSqrId);
+  const piecesOnLeftDiagAbove = leftDiagMemberSquares.filter((sqr: BoardSquare) => sqr.piece && sqr.id > piece.currentSqrId);
+  const piecesOnLeftDiagBelow = leftDiagMemberSquares.filter((sqr: BoardSquare) => sqr.piece && sqr.id < piece.currentSqrId);
+
+  const obstructingRightAbovePiece = piecesOnRightDiagAbove.sort()[0];
+  const obstructingRightBelowPiece = piecesOnRightDiagBelow.sort()[piecesOnRightDiagBelow.length - 1];
+  const obstructingLeftAbovePiece = piecesOnLeftDiagAbove.sort()[0];
+  const obstructingLeftBelowPiece = piecesOnLeftDiagBelow.sort()[piecesOnLeftDiagBelow.length - 1];
+
+  return (
+    targetSquare.piece?.color !== piece.color 
+  ) && (
+    Math.abs(targetSquare.id - piece.currentSqrId) % 9 === 0
+    || Math.abs(targetSquare.id - piece.currentSqrId) % 7 === 0
+  ) && (
+    !(targetSquare.id > obstructingRightAbovePiece?.id && rightDiagMemberSquares.find((sqr) => sqr.id === targetSquare.id))
+    && !(targetSquare.id > obstructingLeftAbovePiece?.id && leftDiagMemberSquares.find((sqr) => sqr.id === targetSquare.id))
+    && !(targetSquare.id < obstructingRightBelowPiece?.id && rightDiagMemberSquares.find((sqr) => sqr.id === targetSquare.id))
+    && !(targetSquare.id < obstructingLeftBelowPiece?.id && leftDiagMemberSquares.find((sqr) => sqr.id === targetSquare.id))
+  ) && (
+    targetSquare.color === board[piece.currentSqrId].color
+  );
+};
+
+export class Bishop extends Piece {
+  constructor(startingSqrId: number, color: 'white' | 'black') {
+    super();
+    this.color = color;
+    this.startingSqrId = startingSqrId;
+    this.currentSqrId = startingSqrId;
+    this.abb = 'B';
+    this.name = 'bishop';
+    this.icon = <BishopIcon piece={this} />;
+  }
+
+  moveIsValid(targetSquare: BoardSquare, board: Board): boolean {
+    return checkBishopRules(targetSquare, board, this);
   }
 }
 

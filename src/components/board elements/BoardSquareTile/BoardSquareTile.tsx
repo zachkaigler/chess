@@ -11,13 +11,13 @@ interface BoardSquareTileProps {
 }
 
 const BoardSquareTile: React.FC<BoardSquareTileProps> = ({ square, movePiece, board }) => {
-  const getSquareColor = (square: BoardSquare) => {
-    if (parseInt(square.label.split('')[1]) % 2 === 0) {
-      return square.id % 2 === 0 ? 'dark' : 'light'
-    } else {
-      return square.id % 2 === 0 ? 'light' : 'dark'
-    }
-  };
+  // const getSquareColor = (square: BoardSquare) => {
+  //   if (parseInt(square.label.split('')[1]) % 2 === 0) {
+  //     return square.id % 2 === 0 ? 'dark' : 'light'
+  //   } else {
+  //     return square.id % 2 === 0 ? 'light' : 'dark'
+  //   }
+  // };
 
   const [{ isOver, canDrop }, drop] = useDrop(
     () => ({
@@ -55,7 +55,7 @@ const BoardSquareTile: React.FC<BoardSquareTileProps> = ({ square, movePiece, bo
 
   return (
     <div
-      className={`BoardSquareTile ${getSquareColor(square)}`}
+      className={`BoardSquareTile ${square.color}`}
       style={getAddtleStyles()}
       ref={drop}
     >

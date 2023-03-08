@@ -1,9 +1,15 @@
-import { Piece, Pawn, Rook, Knight } from "./pieces";
+import { Piece, Pawn, Rook, Knight, Bishop } from "./pieces";
 
 export interface BoardSquare {
   id: number;
   label: string;
+  color: SquareColors;
   piece?: Piece;
+}
+
+enum SquareColors {
+  LIGHT = 'light',
+  DARK = 'dark',
 }
 
 export interface Board {
@@ -57,15 +63,30 @@ const getStartingPiece = (id: number) => {
   if (id === 57 || id === 64) return new Rook(id, 'black');
   if (id === 2 || id === 7) return new Knight(id, 'white');
   if (id === 58 || id === 63) return new Knight(id, 'black');
+  if (id === 3 || id === 6) return new Bishop(id, 'white');
+  if (id === 59 || id === 62) return new Bishop(id, 'black');
+
+  if (id === 27) return new Rook(id, 'black');
 };
 
 export const generateBoard = () => {
   const board: Board = {};
+
+  const getSquareColor = (id: number, label: string): SquareColors => {
+    if (parseInt(label.split('')[1]) % 2 === 0) {
+      return id % 2 === 0 ? SquareColors.DARK : SquareColors.LIGHT
+    } else {
+      return id % 2 === 0 ? SquareColors.LIGHT : SquareColors.DARK
+    }
+  };
   
   for (let i = 1; i <= 64; i++) {
+    const label = getSquareInfo(i);
+
     board[i] = {
       id: i,
-      label: getSquareInfo(i),
+      label,
+      color: getSquareColor(i, label),
       piece: getStartingPiece(i),
     }
   }
