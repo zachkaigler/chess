@@ -2,6 +2,7 @@ import { BoardSquare, Board, getRankById, getColBySquare } from "./board";
 import BishopIcon from "./components/pieces/BishopIcon/BishopIcon";
 import KnightIcon from "./components/pieces/KnightIcon/KnightIcon";
 import PawnIcon from "./components/pieces/PawnIcon/PawnIcon";
+import QueenIcon from "./components/pieces/QueenIcon/QueenIcon";
 import RookIcon from "./components/pieces/RookIcon/RookIcon";
 
 export class Piece {
@@ -153,12 +154,12 @@ export class Bishop extends Piece {
     this.abb = 'B';
     this.name = 'bishop';
     this.icon = <BishopIcon piece={this} />;
-  }
+  };
 
   moveIsValid(targetSquare: BoardSquare, board: Board): boolean {
     return checkBishopRules(targetSquare, board, this);
-  }
-}
+  };
+};
 
 export class Knight extends Piece {
   constructor(startingSqrId: number, color: 'white' | 'black') {
@@ -169,7 +170,7 @@ export class Knight extends Piece {
     this.abb = 'N';
     this.name = 'knight';
     this.icon = <KnightIcon piece={this} />;
-  }
+  };
 
   moveIsValid(targetSquare: BoardSquare, board: Board): boolean {
     const currentSquareCol = getColBySquare(board[this.currentSqrId]);
@@ -209,5 +210,21 @@ export class Knight extends Piece {
     ) && (
       !mismatchedEdge
     );
-  }
-}
+  };
+};
+
+export class Queen extends Piece {
+  constructor(startingSqrId: number, color: 'white' | 'black') {
+    super();
+    this.color = color;
+    this.startingSqrId = startingSqrId;
+    this.currentSqrId = startingSqrId;
+    this.abb = 'B';
+    this.name = 'bishop';
+    this.icon = <QueenIcon piece={this} />;
+  };
+
+  moveIsValid(targetSquare: BoardSquare, board: Board): boolean {
+    return checkBishopRules(targetSquare, board, this) || checkRookRules(targetSquare, board, this);
+  };
+};

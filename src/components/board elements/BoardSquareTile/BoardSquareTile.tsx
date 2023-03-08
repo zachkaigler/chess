@@ -61,7 +61,7 @@ const BoardSquareTile: React.FC<BoardSquareTileProps> = ({ square, movePiece, bo
     >
       {square.piece && square.piece.icon}
       {/* {square.label} */}
-      {square.id}
+      {/* {square.id} */}
     </div>
   )
 }

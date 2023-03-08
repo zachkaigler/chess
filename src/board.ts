@@ -1,4 +1,4 @@
-import { Piece, Pawn, Rook, Knight, Bishop } from "./pieces";
+import { Piece, Pawn, Rook, Knight, Bishop, Queen } from "./pieces";
 
 export interface BoardSquare {
   id: number;
@@ -65,8 +65,8 @@ const getStartingPiece = (id: number) => {
   if (id === 58 || id === 63) return new Knight(id, 'black');
   if (id === 3 || id === 6) return new Bishop(id, 'white');
   if (id === 59 || id === 62) return new Bishop(id, 'black');
-
-  if (id === 27) return new Rook(id, 'black');
+  if (id === 4) return new Queen(id, 'white');
+  if (id === 60) return new Queen(id, 'black');
 };
 
 export const generateBoard = () => {
