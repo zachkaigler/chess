@@ -1,28 +1,21 @@
 import React from 'react';
 import { useDrop } from 'react-dnd';
 import { Board, BoardSquare } from '../../../board';
+import { useGameController } from '../../../hooks/useGameController/useGameController';
 import { Piece } from '../../../pieces';
 import './BoardSquareTile.scss'
 
 interface BoardSquareTileProps {
   square: BoardSquare;
-  movePiece(piece: Piece, targetSquare: BoardSquare): void;
-  board: Board;
 }
 
-const BoardSquareTile: React.FC<BoardSquareTileProps> = ({ square, movePiece, board }) => {
-  // const getSquareColor = (square: BoardSquare) => {
-  //   if (parseInt(square.label.split('')[1]) % 2 === 0) {
-  //     return square.id % 2 === 0 ? 'dark' : 'light'
-  //   } else {
-  //     return square.id % 2 === 0 ? 'light' : 'dark'
-  //   }
-  // };
+const BoardSquareTile: React.FC<BoardSquareTileProps> = ({ square }) => {
+  const { game, movePiece } = useGameController();
 
   const [{ isOver, canDrop }, drop] = useDrop(
     () => ({
       accept: 'piece',
-      canDrop: (item: Piece) => item.moveIsValid!(square, board),
+      canDrop: (item: Piece) => item.moveIsValid!(square, game),
       drop: (item: Piece) => movePiece(item, square),
       collect: (monitor) => ({
         isOver: !!monitor.isOver(),

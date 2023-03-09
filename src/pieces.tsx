@@ -247,8 +247,6 @@ export class King extends Piece {
     this.icon = <KingIcon piece={this} />;
   };
 
-
-  // valid moves: -1, +1, +9, +8, +7, -9, -8, -7
   moveIsValid(targetSquare: BoardSquare, board: Board): boolean {
     const currentSquareCol = getColBySquare(board[this.currentSqrId]);
     const currentSquareRank = getRankById(this.currentSqrId);

@@ -1,31 +1,13 @@
-import { useCallback, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { generateBoard, BoardSquare, convertBoardToMatrix } from './board'
+import { convertBoardToMatrix } from './board'
 import BoardSquareTile from './components/board elements/BoardSquareTile/BoardSquareTile';
-import { Pawn } from './pieces';
+import { useGameController } from './hooks/useGameController/useGameController';
 import './App.scss'
 
 function App() {
-  const { board } = generateBoard();
-  const [game, setGame] = useState(board);
-  const boardArray = convertBoardToMatrix(board);
-
-  const movePiece = useCallback((piece: Pawn, targetSquare: BoardSquare) => {
-    setGame({
-      ...game,
-      [piece.currentSqrId]: {
-        ...game[piece.currentSqrId],
-        piece: undefined,
-      },
-      [targetSquare.id]: {
-        ...targetSquare,
-        piece,
-      }
-    })
-    piece.currentSqrId = targetSquare.id;
-  }, [game, setGame]);
-
+  const { game } = useGameController();
+  const boardArray = convertBoardToMatrix(game);
   return (
     <div className="App">
       <DndProvider backend={HTML5Backend}>
@@ -34,8 +16,6 @@ function App() {
             <BoardSquareTile
               key={square.id}
               square={square}
-              board={board}
-              movePiece={movePiece}
             />
           ))}
         </div>
