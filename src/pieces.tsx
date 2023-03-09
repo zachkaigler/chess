@@ -1,5 +1,6 @@
 import { BoardSquare, Board, getRankById, getColBySquare } from "./board";
 import BishopIcon from "./components/pieces/BishopIcon/BishopIcon";
+import KingIcon from "./components/pieces/KingIcon/KingIcon";
 import KnightIcon from "./components/pieces/KnightIcon/KnightIcon";
 import PawnIcon from "./components/pieces/PawnIcon/PawnIcon";
 import QueenIcon from "./components/pieces/QueenIcon/QueenIcon";
@@ -161,6 +162,30 @@ export class Bishop extends Piece {
   };
 };
 
+const hasEdgeMismatch = (
+  currentSquareCol: string,
+  currentSquareRank: number,
+  targetSquareCol: string,
+  targetSquareRank: number,
+): Boolean => (
+  currentSquareCol === 'a' && targetSquareCol === 'h'
+  || currentSquareCol === 'a' && targetSquareCol === 'g'
+  || currentSquareCol === 'b' && targetSquareCol === 'h'
+  || currentSquareCol === 'b' && targetSquareCol === 'g'
+  || currentSquareCol === 'h' && targetSquareCol === 'a'
+  || currentSquareCol === 'h' && targetSquareCol === 'b'
+  || currentSquareCol === 'g' && targetSquareCol === 'a'
+  || currentSquareCol === 'g' && targetSquareCol === 'b'
+  || currentSquareRank === 1 && targetSquareRank === 8
+  || currentSquareRank === 1 && targetSquareRank === 7
+  || currentSquareRank === 2 && targetSquareRank === 8
+  || currentSquareRank === 2 && targetSquareRank === 7
+  || currentSquareRank === 8 && targetSquareRank === 1
+  || currentSquareRank === 8 && targetSquareRank === 2
+  || currentSquareRank === 7 && targetSquareRank === 1
+  || currentSquareRank === 7 && targetSquareRank === 2
+);
+
 export class Knight extends Piece {
   constructor(startingSqrId: number, color: 'white' | 'black') {
     super();
@@ -177,25 +202,7 @@ export class Knight extends Piece {
     const currentSquareRank = getRankById(this.currentSqrId);
     const targetSquareCol = getColBySquare(targetSquare);
     const targetSquareRank = getRankById(targetSquare.id);
-    const mismatchedEdge = (
-      currentSquareCol === 'a' && targetSquareCol === 'h'
-      || currentSquareCol === 'a' && targetSquareCol === 'g'
-      || currentSquareCol === 'b' && targetSquareCol === 'h'
-      || currentSquareCol === 'b' && targetSquareCol === 'g'
-      || currentSquareCol === 'h' && targetSquareCol === 'a'
-      || currentSquareCol === 'h' && targetSquareCol === 'b'
-      || currentSquareCol === 'g' && targetSquareCol === 'a'
-      || currentSquareCol === 'g' && targetSquareCol === 'b'
-      || currentSquareRank === 1 && targetSquareRank === 8
-      || currentSquareRank === 1 && targetSquareRank === 7
-      || currentSquareRank === 2 && targetSquareRank === 8
-      || currentSquareRank === 2 && targetSquareRank === 7
-      || currentSquareRank === 8 && targetSquareRank === 1
-      || currentSquareRank === 8 && targetSquareRank === 2
-      || currentSquareRank === 7 && targetSquareRank === 1
-      || currentSquareRank === 7 && targetSquareRank === 2
-    );
-
+ 
     return (
       targetSquare.piece?.color !== this.color
     ) && (
@@ -208,7 +215,7 @@ export class Knight extends Piece {
       || this.currentSqrId - targetSquare.id === 15
       || this.currentSqrId - targetSquare.id === -15
     ) && (
-      !mismatchedEdge
+      !hasEdgeMismatch(currentSquareCol, currentSquareRank, targetSquareCol, targetSquareRank)
     );
   };
 };
@@ -226,5 +233,41 @@ export class Queen extends Piece {
 
   moveIsValid(targetSquare: BoardSquare, board: Board): boolean {
     return checkBishopRules(targetSquare, board, this) || checkRookRules(targetSquare, board, this);
+  };
+};
+
+export class King extends Piece {
+  constructor(startingSqrId: number, color: 'white' | 'black') {
+    super();
+    this.color = color;
+    this.startingSqrId = startingSqrId;
+    this.currentSqrId = startingSqrId;
+    this.abb = 'K';
+    this.name = 'king';
+    this.icon = <KingIcon piece={this} />;
+  };
+
+
+  // valid moves: -1, +1, +9, +8, +7, -9, -8, -7
+  moveIsValid(targetSquare: BoardSquare, board: Board): boolean {
+    const currentSquareCol = getColBySquare(board[this.currentSqrId]);
+    const currentSquareRank = getRankById(this.currentSqrId);
+    const targetSquareCol = getColBySquare(targetSquare);
+    const targetSquareRank = getRankById(targetSquare.id);
+
+    return (
+      targetSquare.piece?.color !== this.color
+    ) && (
+      targetSquare.id === this.currentSqrId - 1
+      || targetSquare.id === this.currentSqrId + 1
+      || targetSquare.id === this.currentSqrId + 9
+      || targetSquare.id === this.currentSqrId - 9
+      || targetSquare.id === this.currentSqrId + 8
+      || targetSquare.id === this.currentSqrId - 8
+      || targetSquare.id === this.currentSqrId + 7
+      || targetSquare.id === this.currentSqrId - 7
+    ) && (
+      !hasEdgeMismatch(currentSquareCol, currentSquareRank, targetSquareCol, targetSquareRank)
+    );
   };
 };
