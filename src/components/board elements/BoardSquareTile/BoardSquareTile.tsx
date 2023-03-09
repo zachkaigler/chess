@@ -1,6 +1,6 @@
 import React from 'react';
 import { useDrop } from 'react-dnd';
-import { Board, BoardSquare } from '../../../board';
+import { BoardSquare } from '../../../board';
 import { useGameController } from '../../../hooks/useGameController/useGameController';
 import { Piece } from '../../../pieces';
 import './BoardSquareTile.scss'
@@ -22,8 +22,8 @@ const BoardSquareTile: React.FC<BoardSquareTileProps> = ({ square }) => {
         canDrop: !!monitor.canDrop(),
       }),
     }),
-    [],
-  )
+    [game],
+  );
 
   const getAddtleStyles = () => {
     if (isOver && !canDrop) {
