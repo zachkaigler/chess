@@ -51,10 +51,19 @@ const BoardSquareTile: React.FC<BoardSquareTileProps> = ({ square }) => {
       className={`BoardSquareTile ${square.color} ${square.onCooldown ? 'cooldown' : ''} ${canDrop ? 'valid-move' : ''} ${canDrop && square.piece ? 'valid-capture' : ''}`}
       style={getAddtleStyles()}
       ref={drop}
-    >
+      >
       {square.onCooldown && <div className='BoardSquareTile__CooldownProgress' style={cooldownTimerStyles} />}
       {square.piece && <PieceIcon piece={square.piece} onCooldown={square.onCooldown} style={{ position: 'absolute', zIndex: 2 }} />}
-      {/* {square.id} */}
+      <div style={{
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        color: 'white',
+        fontSize: 10,
+        zIndex: 10,
+      }}>
+        {square.id}
+      </div>
     </div>
   )
 }

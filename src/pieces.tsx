@@ -30,15 +30,27 @@ export class Pawn extends Piece {
     this.cooldown = 1000;
   }
 
-  // TODO: account for diagonal capturing and squares that are taken
   moveIsValid(targetSquare: BoardSquare, board: Board): boolean {
+    const hasPieceToCapture = () => {
+      if (this.color === 'white') return (
+        targetSquare.id === this.currentSqrId + 9 && board[targetSquare.id].piece && board[targetSquare.id].piece?.color !== this.color
+        || targetSquare.id === this.currentSqrId + 7 && targetSquare.piece && board[targetSquare.id].piece?.color !== this.color
+      );
+      return (
+        targetSquare.id === this.currentSqrId - 9 && board[targetSquare.id].piece && board[targetSquare.id].piece?.color !== this.color
+        || targetSquare.id === this.currentSqrId - 7 && targetSquare.piece && board[targetSquare.id].piece?.color !== this.color
+      )
+    };
+
     switch (this.color) {
       case 'white':
         if (this.currentSqrId === this.startingSqrId) {
-          if (board[this.currentSqrId + 8].piece) return false;
+          if (board[this.currentSqrId + 8].piece && !hasPieceToCapture()) return false;
+
           if (
             targetSquare.id === this.currentSqrId + 8 && !targetSquare.piece
             || targetSquare.id === this.currentSqrId + 16 && !targetSquare.piece
+            || hasPieceToCapture()
           ) {
             return true;
           } else {
@@ -46,12 +58,14 @@ export class Pawn extends Piece {
           }
         } else if (targetSquare.id === this.currentSqrId + 8 && !targetSquare.piece) {
           return true;
+        } else if (hasPieceToCapture()) {
+          return true;
         } else {
           return false;
         }
       case 'black':
         if (this.currentSqrId === this.startingSqrId) {
-          if (board[this.currentSqrId - 8].piece) return false;
+          if (board[this.currentSqrId - 8].piece  && !hasPieceToCapture()) return false;
           if (
             targetSquare.id === this.currentSqrId - 8 && !targetSquare.piece
             || targetSquare.id === this.currentSqrId - 16 && !targetSquare.piece
@@ -62,7 +76,9 @@ export class Pawn extends Piece {
           }
         } else if (targetSquare.id === this.currentSqrId - 8) {
           return true;
-        } else {
+        } else if (hasPieceToCapture()) {
+          return true;
+        }else {
           return false;
         }
     };
