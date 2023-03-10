@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { HTMLAttributes } from 'react';
 import { ConnectDragSource, useDrag } from 'react-dnd';
 import { Piece, PieceTypes } from '../../../pieces';
 import BishopIcon from '../BishopIcon/BishopIcon';
@@ -8,18 +8,18 @@ import PawnIcon from '../PawnIcon/PawnIcon';
 import QueenIcon from '../QueenIcon/QueenIcon';
 import RookIcon from '../RookIcon/RookIcon';
 
-interface PieceIconProps {
+type PieceIconProps = {
   piece: Piece;
   onCooldown: boolean;
-}
+} & HTMLAttributes<HTMLDivElement>;
 
-export interface ChildIconProps {
+export type ChildIconProps = {
   piece: Piece;
   isDragging: boolean;
   dragRef: ConnectDragSource | null;
-}
+} & HTMLAttributes<HTMLDivElement>;
 
-const PieceIcon: React.FC<PieceIconProps> = ({ piece, onCooldown }) => {
+const PieceIcon: React.FC<PieceIconProps> = ({ piece, onCooldown, ...props }) => {
   const [{ isDragging }, drag] = useDrag(
     () => ({
       type: 'piece',
@@ -31,25 +31,26 @@ const PieceIcon: React.FC<PieceIconProps> = ({ piece, onCooldown }) => {
     [],
   );
 
-  const props = {
+  const collectedProps = {
     piece,
     isDragging,
     dragRef: onCooldown ? null : drag,
+    ...props,
   };
 
   switch (piece.name) {
     case PieceTypes.PAWN:
-      return <PawnIcon {...props} />;
+      return <PawnIcon {...collectedProps} />;
     case PieceTypes.QUEEN:
-      return <QueenIcon {...props} />;
+      return <QueenIcon {...collectedProps} />;
     case PieceTypes.KING:
-      return <KingIcon {...props} />;
+      return <KingIcon {...collectedProps} />;
     case PieceTypes.BISHOP:
-      return <BishopIcon {...props} />;
+      return <BishopIcon {...collectedProps} />;
     case PieceTypes.KNIGHT:
-      return <KnightIcon {...props} />;
+      return <KnightIcon {...collectedProps} />;
     case PieceTypes.ROOK:
-      return <RookIcon {...props} />;
+      return <RookIcon {...collectedProps} />;
     default: return null;
   }
 };

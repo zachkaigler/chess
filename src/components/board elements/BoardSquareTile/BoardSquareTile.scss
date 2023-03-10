@@ -52,7 +52,17 @@
       border-radius: 50%;
       background-color: rgba(219, 75, 75, 0.348);
       position: absolute;
-      z-index: 2;
+      z-index: 3;
     }
   }
+}
+
+.BoardSquareTile__CooldownProgress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  width: 100%;
+  background-color: lightpink;
+  // transition: height 1s ease;
 }

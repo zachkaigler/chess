@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { CSSProperties } from 'react';
 import { useDrop } from 'react-dnd';
 import { BoardSquare } from '../../../board';
 import { useGameController } from '../../../hooks/useGameController/useGameController';
@@ -39,12 +39,11 @@ const BoardSquareTile: React.FC<BoardSquareTileProps> = ({ square }) => {
         color: 'black',
       }
     }
-    if (square.onCooldown) {
-      return {
-        backgroundColor: 'lightpink',
-        color: 'black'
-      };
-    }
+  };
+
+  const cooldownTimerStyles: CSSProperties = {
+    height: `${100 - square.cooldownProgress}%`,
+    transition: !square.piece ? '' : `height ${square.piece.cooldown / 10}ms linear`,
   };
 
   return (
@@ -53,7 +52,8 @@ const BoardSquareTile: React.FC<BoardSquareTileProps> = ({ square }) => {
       style={getAddtleStyles()}
       ref={drop}
     >
-      {square.piece && <PieceIcon piece={square.piece} onCooldown={square.onCooldown} />}
+      {square.onCooldown && <div className='BoardSquareTile__CooldownProgress' style={cooldownTimerStyles} />}
+      {square.piece && <PieceIcon piece={square.piece} onCooldown={square.onCooldown} style={{ position: 'absolute', zIndex: 2 }} />}
       {/* {square.id} */}
     </div>
   )

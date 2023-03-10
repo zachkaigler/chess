@@ -1,10 +1,10 @@
 import React from 'react'
 import { ChildIconProps } from '../PieceIcon/PieceIcon';
 
-const PawnIcon: React.FC<ChildIconProps> = ({ piece, isDragging, dragRef }) => {
+const PawnIcon: React.FC<ChildIconProps> = ({ piece, isDragging, dragRef, ...props }) => {
   if (piece.color === 'black') return (
     <>
-      <div style={{ width: '85%', height: '85%' }} ref={dragRef}>
+      <div style={{ width: '85%', height: '85%', ...props.style }} ref={dragRef} >
         <svg width="100%" height="100%" viewBox="0 0 217 328" fill="none" xmlns="http://www.w3.org/2000/svg" cursor={isDragging ? 'grabbing' : 'grab'}>
           <ellipse cx="108.5" cy="140" rx="69.5" ry="67" fill="black"/>
           <mask id="mask0_12_2" style={{ maskType: 'alpha' }} maskUnits="userSpaceOnUse" x="0" y="115" width="217" height="213">
@@ -26,7 +26,7 @@ const PawnIcon: React.FC<ChildIconProps> = ({ piece, isDragging, dragRef }) => {
 
   return (
     <>
-      <div style={{ width: '85%', height: '85%' }} ref={dragRef}>
+      <div style={{ width: '85%', height: '85%', ...props.style  }} ref={dragRef}>
       <svg width="100%" height="100%" viewBox="0 0 217 328" fill="none" xmlns="http://www.w3.org/2000/svg" cursor={isDragging ? 'grabbing' : 'grab'}>
         <ellipse cx="108.5" cy="140" rx="69.5" ry="67" fill="#FFFDF0"/>
         <mask id="mask0_12_9" style={{ maskType: 'alpha' }} maskUnits="userSpaceOnUse" x="0" y="115" width="217" height="213">

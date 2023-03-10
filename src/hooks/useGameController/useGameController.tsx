@@ -31,6 +31,28 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
       },
     }));
     piece.currentSqrId = targetSquare.id;
+    const progressInterval = setInterval(() => {
+      setGame((oldGame) => {
+        if (!oldGame[targetSquare.id].onCooldown) {
+          clearInterval(progressInterval);
+          return {
+            ...oldGame,
+            [targetSquare.id]: {
+              ...oldGame[targetSquare.id],
+              cooldownProgress: 0,
+            },
+          };
+        } else {
+          return {
+            ...oldGame,
+            [targetSquare.id]: {
+              ...oldGame[targetSquare.id],
+              cooldownProgress: oldGame[targetSquare.id].cooldownProgress + 10,
+            }
+          };
+        };
+      });
+    }, piece.cooldown / 10);
     setTimeout(() => {
       setGame((oldGame) => ({
         ...oldGame,

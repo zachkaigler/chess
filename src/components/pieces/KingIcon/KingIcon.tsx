@@ -1,10 +1,10 @@
 import React from 'react';
 import { ChildIconProps } from '../PieceIcon/PieceIcon';
 
-const KingIcon: React.FC<ChildIconProps> = ({ piece, isDragging, dragRef }) => {
+const KingIcon: React.FC<ChildIconProps> = ({ piece, isDragging, dragRef, ...props }) => {
   if (piece.color === 'black') return (
     <>
-      <div style={{ width: '85%', height: '85%' }} ref={dragRef}>
+      <div style={{ width: '85%', height: '85%', ...props.style  }} ref={dragRef}>
         <svg width="100%" height="100%" viewBox="0 0 217 327" fill="none" xmlns="http://www.w3.org/2000/svg" cursor={isDragging ? 'grabbing' : 'grab'}>
           <path d="M167.93 116.172C155.031 119.789 144.966 139.781 141.546 149.326L106 187V79H179.29C180.878 89.8837 180.829 112.555 167.93 116.172Z" fill="black"/>
           <path d="M48.0697 116.172C60.9688 119.789 71.034 139.781 74.4542 149.326L110 187V79H36.7096C35.1217 89.8837 35.1706 112.555 48.0697 116.172Z" fill="black"/>
@@ -30,7 +30,7 @@ const KingIcon: React.FC<ChildIconProps> = ({ piece, isDragging, dragRef }) => {
 
   return (
     <>
-      <div style={{ width: '85%', height: '85%' }} ref={dragRef}>
+      <div style={{ width: '85%', height: '85%', ...props.style  }} ref={dragRef}>
         <svg width="100%" height="100%" viewBox="0 0 217 327" fill="none" xmlns="http://www.w3.org/2000/svg" cursor={isDragging ? 'grabbing' : 'grab'}>
           <path d="M167.93 116.172C155.031 119.789 144.966 139.781 141.546 149.326L106 187V79H179.29C180.878 89.8837 180.829 112.555 167.93 116.172Z" fill="#FFFDF0"/>
           <path d="M48.0697 116.172C60.9688 119.789 71.034 139.781 74.4542 149.326L110 187V79H36.7096C35.1217 89.8837 35.1706 112.555 48.0697 116.172Z" fill="#FFFDF0"/>
