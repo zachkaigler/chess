@@ -54,7 +54,7 @@ const BoardSquareTile: React.FC<BoardSquareTileProps> = ({ square }) => {
       >
       {square.onCooldown && <div className='BoardSquareTile__CooldownProgress' style={cooldownTimerStyles} />}
       {square.piece && <PieceIcon piece={square.piece} onCooldown={square.onCooldown} style={{ position: 'absolute', zIndex: 2 }} />}
-      <div style={{
+      {/* <div style={{
         position: 'absolute',
         bottom: 0,
         left: 0,
@@ -63,7 +63,7 @@ const BoardSquareTile: React.FC<BoardSquareTileProps> = ({ square }) => {
         zIndex: 10,
       }}>
         {square.id}
-      </div>
+      </div> */}
     </div>
   )
 }
