@@ -4,6 +4,7 @@ export interface BoardSquare {
   id: number;
   label: string;
   color: SquareColors;
+  onCooldown: boolean;
   piece?: Piece;
 }
 
@@ -90,6 +91,7 @@ export const generateBoard = () => {
       label,
       color: getSquareColor(i, label),
       piece: getStartingPiece(i),
+      onCooldown: false,
     }
   }
 

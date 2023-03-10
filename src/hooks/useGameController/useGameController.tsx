@@ -25,11 +25,21 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
         piece: undefined,
       },
       [targetSquare.id]: {
-        ...targetSquare,
+        ...oldGame[targetSquare.id],
         piece,
-      }
+        onCooldown: true,
+      },
     }));
     piece.currentSqrId = targetSquare.id;
+    setTimeout(() => {
+      setGame((oldGame) => ({
+        ...oldGame,
+        [targetSquare.id]: {
+          ...oldGame[targetSquare.id],
+          onCooldown: false,
+        },
+      }));
+    }, piece.cooldown);
   }, []);
 
   return (

@@ -1,18 +1,21 @@
 import { BoardSquare, Board, getRankById, getColBySquare } from "./board";
-import BishopIcon from "./components/pieces/BishopIcon/BishopIcon";
-import KingIcon from "./components/pieces/KingIcon/KingIcon";
-import KnightIcon from "./components/pieces/KnightIcon/KnightIcon";
-import PawnIcon from "./components/pieces/PawnIcon/PawnIcon";
-import QueenIcon from "./components/pieces/QueenIcon/QueenIcon";
-import RookIcon from "./components/pieces/RookIcon/RookIcon";
+
+export enum PieceTypes {
+  KING = 'king',
+  QUEEN = 'queen',
+  ROOK = 'rook',
+  BISHOP = 'bishop',
+  KNIGHT = 'knight',
+  PAWN = 'pawn',
+};
 
 export class Piece {
   color: 'white' | 'black';
   startingSqrId: number;
   currentSqrId: number;
   abb: string | null;
-  name: string;
-  icon: React.ReactNode;
+  name: PieceTypes;
+  cooldown: number;
   moveIsValid?(targetSquare: BoardSquare, board: Board): boolean
 }
 
@@ -23,8 +26,8 @@ export class Pawn extends Piece {
     this.startingSqrId = startingSqrId;
     this.currentSqrId = startingSqrId;
     this.abb = null;
-    this.name = 'pawn';
-    this.icon = <PawnIcon piece={this} />;
+    this.name = PieceTypes.PAWN;
+    this.cooldown = 1000;
   }
 
   // TODO: account for diagonal capturing and squares that are taken
@@ -108,8 +111,8 @@ export class Rook extends Piece {
     this.startingSqrId = startingSqrId;
     this.currentSqrId = startingSqrId;
     this.abb = 'R';
-    this.name = 'rook';
-    this.icon = <RookIcon piece={this} />;
+    this.name = PieceTypes.ROOK;
+    this.cooldown = 5000;
   };
 
   moveIsValid(targetSquare: BoardSquare, board: Board): boolean {
@@ -153,8 +156,8 @@ export class Bishop extends Piece {
     this.startingSqrId = startingSqrId;
     this.currentSqrId = startingSqrId;
     this.abb = 'B';
-    this.name = 'bishop';
-    this.icon = <BishopIcon piece={this} />;
+    this.name = PieceTypes.BISHOP;
+    this.cooldown = 3000;
   };
 
   moveIsValid(targetSquare: BoardSquare, board: Board): boolean {
@@ -193,8 +196,8 @@ export class Knight extends Piece {
     this.startingSqrId = startingSqrId;
     this.currentSqrId = startingSqrId;
     this.abb = 'N';
-    this.name = 'knight';
-    this.icon = <KnightIcon piece={this} />;
+    this.name = PieceTypes.KNIGHT;
+    this.cooldown = 3000;
   };
 
   moveIsValid(targetSquare: BoardSquare, board: Board): boolean {
@@ -227,8 +230,9 @@ export class Queen extends Piece {
     this.startingSqrId = startingSqrId;
     this.currentSqrId = startingSqrId;
     this.abb = 'B';
-    this.name = 'bishop';
-    this.icon = <QueenIcon piece={this} />;
+    this.name = PieceTypes.QUEEN;
+    // this.icon = <PieceIcon piece={this} />;
+    this.cooldown = 9000;
   };
 
   moveIsValid(targetSquare: BoardSquare, board: Board): boolean {
@@ -236,6 +240,8 @@ export class Queen extends Piece {
   };
 };
 
+
+// TODO: controlled squares should not pass check
 export class King extends Piece {
   constructor(startingSqrId: number, color: 'white' | 'black') {
     super();
@@ -243,8 +249,8 @@ export class King extends Piece {
     this.startingSqrId = startingSqrId;
     this.currentSqrId = startingSqrId;
     this.abb = 'K';
-    this.name = 'king';
-    this.icon = <KingIcon piece={this} />;
+    this.name = PieceTypes.KING;
+    this.cooldown = 5000;
   };
 
   moveIsValid(targetSquare: BoardSquare, board: Board): boolean {

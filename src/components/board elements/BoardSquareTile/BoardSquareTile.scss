@@ -7,14 +7,52 @@
   width: auto;
   max-width: calc(100vw / 8 - .25rem);
   aspect-ratio: 1 / 1;
+  position: relative;
 
   &.dark {
-    background-color: rgb(80, 80, 80);
+    background-color: rgb(71, 71, 71);
     color: white;
   }
 
   &.light {
-    background-color: white;
+    background-color: rgb(163, 189, 235);
     color: black;
+  }
+
+  &.cooldown {
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      background-color: rgba(46, 46, 46, 0.247);
+    }
+  }
+
+  &.valid-move {
+    &::after {
+      content: '';
+      width: 25%;
+      aspect-ratio: 1 / 1;
+      border-radius: 50%;
+      background-color: rgba(0, 0, 0, 0.247);
+      position: absolute;
+      z-index: 2;
+    }
+  }
+
+  &.valid-capture {
+    &::after {
+      content: '';
+      width: 95%;
+      aspect-ratio: 1 / 1;
+      border-radius: 50%;
+      background-color: rgba(219, 75, 75, 0.348);
+      position: absolute;
+      z-index: 2;
+    }
   }
 }
