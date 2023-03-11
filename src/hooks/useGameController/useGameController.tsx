@@ -30,7 +30,6 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
         onCooldown: true,
       },
     }));
-    // piece.currentSqrId = targetSquare.id;
     const progressInterval = setInterval(() => {
       setGame((oldGame) => {
         if (!oldGame[targetSquare.id].onCooldown) {
