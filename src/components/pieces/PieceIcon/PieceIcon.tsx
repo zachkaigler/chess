@@ -1,5 +1,6 @@
 import React, { HTMLAttributes } from 'react';
 import { ConnectDragSource, useDrag } from 'react-dnd';
+import { BoardSquare } from '../../../board';
 import { Piece, PieceTypes } from '../../../pieces';
 import BishopIcon from '../BishopIcon/BishopIcon';
 import KingIcon from '../KingIcon/KingIcon';
@@ -9,7 +10,7 @@ import QueenIcon from '../QueenIcon/QueenIcon';
 import RookIcon from '../RookIcon/RookIcon';
 
 type PieceIconProps = {
-  piece: Piece;
+  square: BoardSquare;
   onCooldown: boolean;
 } & HTMLAttributes<HTMLDivElement>;
 
@@ -19,11 +20,11 @@ export type ChildIconProps = {
   dragRef: ConnectDragSource | null;
 } & HTMLAttributes<HTMLDivElement>;
 
-const PieceIcon: React.FC<PieceIconProps> = ({ piece, onCooldown, ...props }) => {
+const PieceIcon: React.FC<PieceIconProps> = ({ square, onCooldown, ...props }) => {
   const [{ isDragging }, drag] = useDrag(
     () => ({
-      type: 'piece',
-      item: piece,
+      type: 'square',
+      item: square,
       collect: (monitor) => ({
         isDragging: !!monitor.isDragging(),
       }),
@@ -32,13 +33,13 @@ const PieceIcon: React.FC<PieceIconProps> = ({ piece, onCooldown, ...props }) =>
   );
 
   const collectedProps = {
-    piece,
+    piece: square.piece!,
     isDragging,
     dragRef: onCooldown ? null : drag,
     ...props,
   };
 
-  switch (piece.name) {
+  switch (square.piece?.name) {
     case PieceTypes.PAWN:
       return <PawnIcon {...collectedProps} />;
     case PieceTypes.QUEEN:

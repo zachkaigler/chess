@@ -15,9 +15,9 @@ const BoardSquareTile: React.FC<BoardSquareTileProps> = ({ square }) => {
 
   const [{ isOver, canDrop }, drop] = useDrop(
     () => ({
-      accept: 'piece',
-      canDrop: (item: Piece) => item.moveIsValid!(square, game),
-      drop: (item: Piece) => movePiece(item, square),
+      accept: 'square',
+      canDrop: (item: BoardSquare) => item.piece!.moveIsValid!(item, square, game),
+      drop: (item: BoardSquare) => movePiece(item.piece!, item, square),
       collect: (monitor) => ({
         isOver: !!monitor.isOver(),
         canDrop: !!monitor.canDrop(),
@@ -53,7 +53,7 @@ const BoardSquareTile: React.FC<BoardSquareTileProps> = ({ square }) => {
       ref={drop}
       >
       {square.onCooldown && <div className='BoardSquareTile__CooldownProgress' style={cooldownTimerStyles} />}
-      {square.piece && <PieceIcon piece={square.piece} onCooldown={square.onCooldown} style={{ position: 'absolute', zIndex: 2 }} />}
+      {square.piece && <PieceIcon square={square} onCooldown={square.onCooldown} style={{ position: 'absolute', zIndex: 2 }} />}
       {/* <div style={{
         position: 'absolute',
         bottom: 0,

@@ -4,7 +4,7 @@ import { Piece } from "../../pieces";
 
 interface GameContextValues {
   game: Board,
-  movePiece(piece: Piece, targetSquare: BoardSquare): void; 
+  movePiece(piece: Piece, currentSquare: BoardSquare, targetSquare: BoardSquare): void; 
 }
 
 const GameContext = createContext<GameContextValues | undefined>(undefined);
@@ -17,11 +17,11 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
   const { board } = generateBoard();
   const [game, setGame] = useState(board);
 
-  const movePiece = useCallback((piece: Piece, targetSquare: BoardSquare) => {
+  const movePiece = useCallback((piece: Piece, currentSquare: BoardSquare, targetSquare: BoardSquare) => {
     setGame((oldGame) => ({
       ...oldGame,
-      [piece.currentSqrId]: {
-        ...oldGame[piece.currentSqrId],
+      [currentSquare.id]: {
+        ...oldGame[currentSquare.id],
         piece: undefined,
       },
       [targetSquare.id]: {
@@ -30,7 +30,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
         onCooldown: true,
       },
     }));
-    piece.currentSqrId = targetSquare.id;
+    // piece.currentSqrId = targetSquare.id;
     const progressInterval = setInterval(() => {
       setGame((oldGame) => {
         if (!oldGame[targetSquare.id].onCooldown) {
