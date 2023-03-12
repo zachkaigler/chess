@@ -34,7 +34,7 @@ const BoardSquareTile: React.FC<BoardSquareTileProps> = ({ square }) => {
     }
     if (isOver && canDrop) {
       return {
-        backgroundColor: 'lightsalmon',
+        backgroundColor: 'lightgreen',
         color: 'black',
       };
     }
@@ -47,12 +47,12 @@ const BoardSquareTile: React.FC<BoardSquareTileProps> = ({ square }) => {
 
   return (
     <div
-      className={`BoardSquareTile ${square.color} ${square.onCooldown ? 'cooldown' : ''} ${canDrop ? 'valid-move' : ''} ${canDrop && square.piece ? 'valid-capture' : ''}`}
+      className={`BoardSquareTile ${square.color} ${square.cooldownTimers ? 'cooldown' : ''} ${canDrop ? 'valid-move' : ''} ${canDrop && square.piece ? 'valid-capture' : ''}`}
       style={getAddtleStyles()}
       ref={drop}
       >
-      {square.onCooldown && <div className='BoardSquareTile__CooldownProgress' style={cooldownTimerStyles} />}
-      {square.piece && <PieceIcon square={square} onCooldown={square.onCooldown} style={{ position: 'absolute', zIndex: 2 }} />}
+      {square.cooldownTimers && <div className='BoardSquareTile__CooldownProgress' style={cooldownTimerStyles} />}
+      {square.piece && <PieceIcon square={square} onCooldown={!!square.cooldownTimers} style={{ position: 'absolute', zIndex: 2 }} />}
       {/* <div style={{
         position: 'absolute',
         bottom: 0,

@@ -4,7 +4,7 @@ export interface BoardSquare {
   id: number;
   label: string;
   color: SquareColors;
-  onCooldown: boolean;
+  cooldownTimers: null | { timeout: number, interval: number };
   cooldownProgress: number;
   piece?: Piece;
 }
@@ -31,7 +31,7 @@ export const getRankById = (id: number): number => {
 
 export const getColBySquare = (square: BoardSquare): string => square.label[0];
 
-const getSquareInfo = (id: number): string => {
+const generateSquareLabel = (id: number): string => {
   const labelKey: { [key: number]: string } = {
     1: 'a',
     2: 'b',
@@ -85,14 +85,14 @@ export const generateBoard = () => {
   };
   
   for (let i = 1; i <= 64; i++) {
-    const label = getSquareInfo(i);
+    const label = generateSquareLabel(i);
 
     board[i] = {
       id: i,
       label,
       color: getSquareColor(i, label),
       piece: getStartingPiece(i),
-      onCooldown: false,
+      cooldownTimers: null,
       cooldownProgress: 0,
     }
   }

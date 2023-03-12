@@ -18,21 +18,21 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
   const [game, setGame] = useState(board);
 
   const movePiece = useCallback((piece: Piece, currentSquare: BoardSquare, targetSquare: BoardSquare) => {
-    setGame((oldGame) => ({
-      ...oldGame,
-      [currentSquare.id]: {
-        ...oldGame[currentSquare.id],
-        piece: undefined,
-      },
-      [targetSquare.id]: {
-        ...oldGame[targetSquare.id],
-        piece,
-        onCooldown: true,
-      },
-    }));
+    if (targetSquare.cooldownTimers) {
+      clearInterval(targetSquare.cooldownTimers.interval);
+      clearTimeout(targetSquare.cooldownTimers.timeout);
+      setGame((oldGame) => ({
+        ...oldGame,
+        [targetSquare.id]: {
+          ...oldGame[targetSquare.id],
+          cooldownTimers: null,
+          cooldownProgress: 0,
+        },
+      }));
+    }
     const progressInterval = setInterval(() => {
       setGame((oldGame) => {
-        if (!oldGame[targetSquare.id].onCooldown) {
+        if (!oldGame[targetSquare.id].cooldownTimers) {
           clearInterval(progressInterval);
           return {
             ...oldGame,
@@ -52,15 +52,27 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
         };
       });
     }, piece.cooldown / 10);
-    setTimeout(() => {
+    const cooldownTimer = setTimeout(() => {
       setGame((oldGame) => ({
         ...oldGame,
         [targetSquare.id]: {
           ...oldGame[targetSquare.id],
-          onCooldown: false,
+          cooldownTimers: null,
         },
       }));
     }, piece.cooldown);
+    setGame((oldGame) => ({
+      ...oldGame,
+      [currentSquare.id]: {
+        ...oldGame[currentSquare.id],
+        piece: undefined,
+      },
+      [targetSquare.id]: {
+        ...oldGame[targetSquare.id],
+        piece,
+        cooldownTimers: { interval: progressInterval, timeout: cooldownTimer},
+      },
+    }));
   }, []);
 
   return (

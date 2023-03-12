@@ -7,10 +7,11 @@ import BoardSquareTile from './components/board elements/BoardSquareTile/BoardSq
 import { useGameController } from './hooks/useGameController/useGameController';
 import './App.scss'
 
-// TODO: capturing a piece on cooldown needs to reeset that square's cooldown timer to the new piece
 // TODO: when a king is captured, end the game
 // TODO: websockets + backend for pvp play
 // TODO: pawn promotion, en passant, castling
+// TODO: optimize rendering -> every action is causing 2 rerenders for some reason
+// TODO: when a piece with a high cooldown captures a lower one, cooldown meter should jump to top and not slowly refill
 
 function App() {
   const { game } = useGameController();
