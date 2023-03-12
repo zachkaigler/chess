@@ -7,7 +7,6 @@ import BoardSquareTile from './components/board elements/BoardSquareTile/BoardSq
 import { useGameController } from './hooks/useGameController/useGameController';
 import './App.scss'
 
-// TODO: pawn movement and capturing gets wonky towards end of board
 // TODO: capturing a piece on cooldown needs to reeset that square's cooldown timer to the new piece
 // TODO: when a king is captured, end the game
 // TODO: websockets + backend for pvp play

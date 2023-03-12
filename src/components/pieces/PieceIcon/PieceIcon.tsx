@@ -29,7 +29,7 @@ const PieceIcon: React.FC<PieceIconProps> = ({ square, onCooldown, ...props }) =
         isDragging: !!monitor.isDragging(),
       }),
     }),
-    [],
+    [square],
   );
 
   const collectedProps = {

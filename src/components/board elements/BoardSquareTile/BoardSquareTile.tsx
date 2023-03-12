@@ -2,7 +2,6 @@ import React, { CSSProperties } from 'react';
 import { useDrop } from 'react-dnd';
 import { BoardSquare } from '../../../board';
 import { useGameController } from '../../../hooks/useGameController/useGameController';
-import { Piece } from '../../../pieces';
 import PieceIcon from '../../pieces/PieceIcon/PieceIcon';
 import './BoardSquareTile.scss'
 
@@ -37,7 +36,7 @@ const BoardSquareTile: React.FC<BoardSquareTileProps> = ({ square }) => {
       return {
         backgroundColor: 'lightsalmon',
         color: 'black',
-      }
+      };
     }
   };
 
