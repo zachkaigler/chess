@@ -66,6 +66,7 @@ export class Pawn extends Piece {
           if (
             targetSquare.id === currentSquare.id - 8 && !targetSquare.piece
             || targetSquare.id === currentSquare.id - 16 && !targetSquare.piece
+            || hasPieceToCapture()
           ) {
             return true;
           } else {
