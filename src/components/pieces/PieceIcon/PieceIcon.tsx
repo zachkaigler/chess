@@ -1,7 +1,7 @@
 import React, { HTMLAttributes } from 'react';
 import { ConnectDragSource, useDrag } from 'react-dnd';
-import { BoardSquare } from '../../../board';
-import { Piece, PieceTypes } from '../../../pieces';
+import { BoardSquare } from '../../../game/game';
+import { Piece, PieceTypes } from '../../../game/pieces';
 import BishopIcon from '../BishopIcon/BishopIcon';
 import KingIcon from '../KingIcon/KingIcon';
 import KnightIcon from '../KnightIcon/KnightIcon';

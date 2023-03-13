@@ -1,4 +1,4 @@
-import { BoardSquare, Board, getRankById, getColBySquare } from "./board";
+import { BoardSquare, Board, getRankById, getColBySquare } from "./game";
 
 export enum PieceTypes {
   KING = 'king',

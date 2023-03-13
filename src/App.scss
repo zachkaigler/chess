@@ -6,6 +6,11 @@
   align-items: center;
 }
 
+.Chess__BoardContainer {
+  width: fit-content;
+  height: fit-content;
+}
+
 .Chess__Board {
   display: grid;
   grid-template-columns: repeat(8, max-content);

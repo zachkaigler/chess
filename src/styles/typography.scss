@@ -1,0 +1,61 @@
+@mixin MainFont {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+@mixin Italic {
+  .Italic {
+    font-style: italic;
+  }
+}
+
+@mixin text-3D($color) {
+  text-shadow: 1px 1px 1px $color,
+  1px 2px 1px $color,
+  1px 3px 1px $color,
+  1px 4px 1px $color,
+  1px 5px 1px $color,
+  1px 6px 1px $color,
+  1px 7px 1px $color,
+  1px 8px 1px $color,
+  1px 9px 1px $color,
+  1px 10px 1px $color,
+  1px 18px 6px rgba(0, 0, 0, 0.317),
+}
+
+@mixin transition-250ms-ease {
+  transition: all 250ms ease;
+}
+
+@mixin tilt {
+  animation: tilt 3s infinite;
+
+  @keyframes tilt {
+    0% {
+      transform: rotate(-20deg);
+    }
+    66% {
+      transform: rotate(-17deg);
+    }
+    100% {
+      transform: rotate(-20deg);
+    }
+  }
+}
+
+$xlarge: 15rem;
+
+$large: 7rem;
+$large-mobile: 3.5rem;
+
+$medium: 3.5rem;
+$medium-mobile: 1.5rem;
+
+$mediumMini: 1.75rem;
+$mediumMini-mobile: 1.25rem;
+
+$small: 1.25rem;
+$small-mobile: 1rem;
+
+$xsmall: 1rem;
+
+$tiny: .75rem;

@@ -1,3 +1,5 @@
+@import '../../../styles/colors.scss';
+
 .BoardSquareTile {
   display: flex;
   justify-content: center;
@@ -10,12 +12,12 @@
   position: relative;
 
   &.dark {
-    background-color: rgb(71, 71, 71);
+    background-color: $grey-lead;
     color: white;
   }
 
   &.light {
-    background-color: rgb(163, 189, 235);
+    background-color: $blue-lead;
     color: black;
   }
 
@@ -50,7 +52,7 @@
       width: 95%;
       aspect-ratio: 1 / 1;
       border-radius: 50%;
-      background-color: rgba(219, 75, 75, 0.348);
+      background-color: $red-lead;
       position: absolute;
       z-index: 3;
     }
@@ -63,6 +65,5 @@
   left: 0;
   z-index: 1;
   width: 100%;
-  background-color: lightpink;
-  // transition: height 1s ease;
+  background-color: $red-light;
 }

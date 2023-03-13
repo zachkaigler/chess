@@ -1,10 +1,20 @@
-import { createContext, useCallback, useState, useContext } from "react";
-import { generateBoard, BoardSquare, Board } from "../../board";
-import { Piece } from "../../pieces";
+import { createContext, useCallback, useState, useContext, useEffect } from "react";
+import { generateBoard, BoardSquare, Board, convertBoardToMatrix } from "../../game/game";
+import { Piece, PieceTypes } from "../../game/pieces";
+
+export enum GameStates {
+  NOT_STARTED = 'notStarted',
+  STARTING = 'starting',
+  PLAYING = 'playing',
+  ENDED_WHITE_WIN = 'endedWhiteWin',
+  ENDED_BLACK_WIN = 'endedBlackWin',
+  ENDED_DRAW = 'endedDraw',
+}
 
 interface GameContextValues {
   game: Board,
-  movePiece(piece: Piece, currentSquare: BoardSquare, targetSquare: BoardSquare): void; 
+  gameState: GameStates,
+  movePiece(piece: Piece, currentSquare: BoardSquare, targetSquare: BoardSquare): void;
 }
 
 const GameContext = createContext<GameContextValues | undefined>(undefined);
@@ -16,8 +26,16 @@ interface GameProviderProps {
 export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
   const { board } = generateBoard();
   const [game, setGame] = useState(board);
+  const [gameState, setGameState] = useState(GameStates.PLAYING); // TODO: cycle this through all steps eventually
+
+  useEffect(() => {
+    if (convertBoardToMatrix(game).filter((sqr: BoardSquare) => sqr.piece && sqr.piece.name !== PieceTypes.KING).length === 0) {
+      setGameState(GameStates.ENDED_DRAW);
+    }
+  }, [game]);
 
   const movePiece = useCallback((piece: Piece, currentSquare: BoardSquare, targetSquare: BoardSquare) => {
+    if (gameState !== GameStates.PLAYING) return;
     if (targetSquare.cooldownTimers) {
       clearInterval(targetSquare.cooldownTimers.interval);
       clearTimeout(targetSquare.cooldownTimers.timeout);
@@ -73,10 +91,13 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
         cooldownTimers: { interval: progressInterval, timeout: cooldownTimer},
       },
     }));
+    if (targetSquare.piece && targetSquare.piece.name === PieceTypes.KING) {
+      setGameState(targetSquare.piece.color === 'black' ? GameStates.ENDED_WHITE_WIN : GameStates.ENDED_BLACK_WIN);
+    }
   }, []);
 
   return (
-    <GameContext.Provider value={{ game, movePiece }}>
+    <GameContext.Provider value={{ game, gameState, movePiece }}>
       {children}
     </GameContext.Provider>
   );

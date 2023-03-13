@@ -1,0 +1,34 @@
+.Modal__Container {
+  left: 0;
+  top: 0;
+  width: fit-content;
+  height: fit-content;
+  position: fixed;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 99997;
+}
+
+.Modal__Background {
+  width: 100dvw;
+  width: 100vw;
+  height: 100vh;
+  z-index: 99998;
+}
+
+.Modal {
+  width: fit-content;
+  height: fit-content;
+  z-index: 99999;
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.Modal__Close {
+  cursor: pointer;
+  align-self: flex-end;
+}

@@ -1,6 +1,6 @@
 import React, { CSSProperties } from 'react';
 import { useDrop } from 'react-dnd';
-import { BoardSquare } from '../../../board';
+import { BoardSquare } from '../../../game/game';
 import { useGameController } from '../../../hooks/useGameController/useGameController';
 import PieceIcon from '../../pieces/PieceIcon/PieceIcon';
 import './BoardSquareTile.scss'
