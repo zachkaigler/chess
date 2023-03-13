@@ -7,7 +7,7 @@ import BoardSquareTile from './components/board elements/BoardSquareTile/BoardSq
 import { GameStates, useGameController } from './hooks/useGameController/useGameController';
 import Modal from './components/ui/organisms/Modal/Modal';
 import GameOver from './components/ui/molecules/GameOver/GameOver';
-import './App.scss'
+import './App.scss';
 
 // TODO: websockets + backend for pvp play
 // TODO: captured pieces show up to side and calculate score
