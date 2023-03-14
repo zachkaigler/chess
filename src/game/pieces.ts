@@ -9,13 +9,42 @@ export enum PieceTypes {
   PAWN = 'pawn',
 };
 
+export const pieceValues = {
+  [PieceTypes.KING]: {
+    points: null,
+    cooldown: 5000,
+  },
+  [PieceTypes.QUEEN]: {
+    points: 9,
+    cooldown: 9000,
+  },
+  [PieceTypes.ROOK]: {
+    points: 5,
+    cooldown: 5000,
+  },
+  [PieceTypes.BISHOP]: {
+    points: 3,
+    cooldown: 3000,
+  },
+  [PieceTypes.KNIGHT]: {
+    points: 3,
+    cooldown: 3000,
+  },
+  [PieceTypes.PAWN]: {
+    points: 1,
+    cooldown: 1000,
+  },
+}
+
 export class Piece {
   color: 'white' | 'black';
   startingSqrId: number;
   abb: string | null;
   name: PieceTypes;
+  value: number | null;
   cooldown: number;
   enPassantPossible?: boolean;
+  canCastle?: boolean;
   moveIsValid?(currentSquare: BoardSquare, targetSquare: BoardSquare, board: Board): boolean
 }
 
@@ -35,7 +64,8 @@ export class Pawn extends Piece {
     this.startingSqrId = startingSqrId;
     this.abb = null;
     this.name = PieceTypes.PAWN;
-    this.cooldown = 1000;
+    this.value = pieceValues[PieceTypes.PAWN].points;
+    this.cooldown = pieceValues[PieceTypes.PAWN].cooldown;
     this.enPassantPossible = false;
   }
 
@@ -140,7 +170,9 @@ export class Rook extends Piece {
     this.startingSqrId = startingSqrId;
     this.abb = 'R';
     this.name = PieceTypes.ROOK;
-    this.cooldown = 5000;
+    this.value = pieceValues[PieceTypes.ROOK].points;
+    this.cooldown = pieceValues[PieceTypes.ROOK].cooldown;
+    this.canCastle = true;
   };
 
   moveIsValid(currentSquare: BoardSquare, targetSquare: BoardSquare, board: Board): boolean {
@@ -184,7 +216,8 @@ export class Bishop extends Piece {
     this.startingSqrId = startingSqrId;
     this.abb = 'B';
     this.name = PieceTypes.BISHOP;
-    this.cooldown = 3000;
+    this.value = pieceValues[PieceTypes.BISHOP].points;
+    this.cooldown = pieceValues[PieceTypes.BISHOP].cooldown;
   };
 
   moveIsValid(currentSquare: BoardSquare, targetSquare: BoardSquare, board: Board): boolean {
@@ -223,7 +256,8 @@ export class Knight extends Piece {
     this.startingSqrId = startingSqrId;
     this.abb = 'N';
     this.name = PieceTypes.KNIGHT;
-    this.cooldown = 3000;
+    this.value = pieceValues[PieceTypes.KNIGHT].points;
+    this.cooldown = pieceValues[PieceTypes.KNIGHT].cooldown;
   };
 
   moveIsValid(currentSquare: BoardSquare, targetSquare: BoardSquare, board: Board): boolean {
@@ -256,7 +290,8 @@ export class Queen extends Piece {
     this.startingSqrId = startingSqrId;
     this.abb = 'B';
     this.name = PieceTypes.QUEEN;
-    this.cooldown = 9000;
+    this.value = pieceValues[PieceTypes.QUEEN].points;
+    this.cooldown = pieceValues[PieceTypes.QUEEN].cooldown;
   };
 
   moveIsValid(currentSquare: BoardSquare, targetSquare: BoardSquare, board: Board): boolean {
@@ -271,7 +306,9 @@ export class King extends Piece {
     this.startingSqrId = startingSqrId;
     this.abb = 'K';
     this.name = PieceTypes.KING;
-    this.cooldown = 5000;
+    this.value = pieceValues[PieceTypes.KING].points;
+    this.cooldown = pieceValues[PieceTypes.KING].cooldown;
+    this.canCastle = true;
   };
 
   moveIsValid(currentSquare: BoardSquare, targetSquare: BoardSquare, board: Board): boolean {
@@ -279,6 +316,45 @@ export class King extends Piece {
     const currentSquareRank = getRankById(currentSquare.id);
     const targetSquareCol = getColBySquare(targetSquare);
     const targetSquareRank = getRankById(targetSquare.id);
+
+    const getCastleStatus = () => {
+      const kingSideAvailableWhite = !!(
+        this.canCastle
+        && board[8].piece?.canCastle
+        && targetSquare.id === 7
+        && !board[7].piece
+        && !board[6].piece
+      );
+      const queenSideAvailableWhite = !!(
+        this.canCastle
+        && board[1].piece?.canCastle
+        && targetSquare.id === 3
+        && !board[4].piece
+        && !board[3].piece
+        && !board[2].piece
+      );
+      const kingSideAvailableBlack = !!(
+        this.canCastle
+        && board[64].piece?.canCastle
+        && targetSquare.id === 63
+        && !board[62].piece
+        && !board[63].piece
+      );
+      const queenSideAvailableBlack = !!(
+        this.canCastle
+        && board[57].piece?.canCastle
+        && targetSquare.id === 59
+        && !board[60].piece
+        && !board[59].piece
+        && !board[58].piece
+      );
+      return {
+        kingSideAvailableWhite,
+        queenSideAvailableWhite,
+        kingSideAvailableBlack,
+        queenSideAvailableBlack,
+      };
+    };
 
     return (
       targetSquare.piece?.color !== this.color
@@ -291,6 +367,10 @@ export class King extends Piece {
       || targetSquare.id === currentSquare.id - 8
       || targetSquare.id === currentSquare.id + 7
       || targetSquare.id === currentSquare.id - 7
+      || getCastleStatus().kingSideAvailableWhite
+      || getCastleStatus().queenSideAvailableWhite
+      || getCastleStatus().kingSideAvailableBlack
+      || getCastleStatus().queenSideAvailableBlack
     ) && (
       !hasEdgeMismatch(currentSquareCol, currentSquareRank, targetSquareCol, targetSquareRank)
     );
