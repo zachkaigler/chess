@@ -34,11 +34,56 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     }
   }, [game]);
 
+  const generateCooldownInterval = (cooldown: number, targetSquareId: number) => {
+    const progressInterval = setInterval(() => {
+      setGame((oldGame) => {
+        if (!oldGame[targetSquareId].cooldownTimers) {
+          clearInterval(progressInterval);
+          return {
+            ...oldGame,
+            [targetSquareId]: {
+              ...oldGame[targetSquareId],
+              cooldownProgress: 0,
+            },
+          };
+        } else {
+          return {
+            ...oldGame,
+            [targetSquareId]: {
+              ...oldGame[targetSquareId],
+              cooldownProgress: oldGame[targetSquareId].cooldownProgress + 10,
+            }
+          };
+        };
+      });
+    }, cooldown / 10);
+
+    return progressInterval;
+  };
+
+  const generateCooldownTimeout = (cooldown: number, targetSquareId: number) => {
+    const cooldownTimer = setTimeout(() => {
+      setGame((oldGame) => ({
+        ...oldGame,
+        [targetSquareId]: {
+          ...oldGame[targetSquareId],
+          cooldownTimers: null,
+        },
+      }));
+    }, cooldown);
+
+    return cooldownTimer;
+  };
+
   const movePiece = useCallback((piece: Piece, currentSquare: BoardSquare, targetSquare: BoardSquare) => {
     if (gameState !== GameStates.PLAYING) return;
-    let rookCastleInterval: number;
-    let rookCastleTimeout: number;
 
+    const mainMoveInterval = generateCooldownInterval(piece.cooldown, targetSquare.id);
+    const mainMoveTimeout = generateCooldownTimeout(piece.cooldown, targetSquare.id);
+    let castleRookInterval: number;
+    let castleRookTimeout: number;
+
+    // reset timers on a square after capture
     if (targetSquare.cooldownTimers) {
       clearInterval(targetSquare.cooldownTimers.interval);
       clearTimeout(targetSquare.cooldownTimers.timeout);
@@ -52,39 +97,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
       }));
     }
 
-    const progressInterval = setInterval(() => {
-      setGame((oldGame) => {
-        if (!oldGame[targetSquare.id].cooldownTimers) {
-          clearInterval(progressInterval);
-          return {
-            ...oldGame,
-            [targetSquare.id]: {
-              ...oldGame[targetSquare.id],
-              cooldownProgress: 0,
-            },
-          };
-        } else {
-          return {
-            ...oldGame,
-            [targetSquare.id]: {
-              ...oldGame[targetSquare.id],
-              cooldownProgress: oldGame[targetSquare.id].cooldownProgress + 10,
-            }
-          };
-        };
-      });
-    }, piece.cooldown / 10);
-
-    const cooldownTimer = setTimeout(() => {
-      setGame((oldGame) => ({
-        ...oldGame,
-        [targetSquare.id]: {
-          ...oldGame[targetSquare.id],
-          cooldownTimers: null,
-        },
-      }));
-    }, piece.cooldown);
-
+    // move piece from old square to new square and initiate cooldown
     setGame((oldGame) => ({
       ...oldGame,
       [currentSquare.id]: {
@@ -99,49 +112,23 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
           enPassantPossible: canBeCapturedEnPassant(piece, currentSquare, targetSquare) ? true : false,
           canCastle: false,
         },
-        cooldownTimers: { interval: progressInterval, timeout: cooldownTimer },
+        cooldownTimers: {
+          interval: mainMoveInterval,
+          timeout: mainMoveTimeout,
+        },
       },
     }));
 
-    // if castle king side
+    // rook move if castle king side
     if (
       piece.name === PieceTypes.KING
       && targetSquare.id === currentSquare.id + 2
     ) {
       switch (piece.color) {
         case 'white':
-          rookCastleInterval = setInterval(() => {
-            setGame((oldGame) => {
-              if (!oldGame[6].cooldownTimers) {
-                clearInterval(rookCastleInterval);
-                return {
-                  ...oldGame,
-                  6: {
-                    ...oldGame[6],
-                    cooldownProgress: 0,
-                  },
-                };
-              } else {
-                return {
-                  ...oldGame,
-                  6: {
-                    ...oldGame[6],
-                    cooldownProgress: oldGame[6].cooldownProgress + 10,
-                  }
-                };
-              };
-            });
-          }, pieceValues[PieceTypes.ROOK].cooldown / 10);
-    
-          rookCastleTimeout = setTimeout(() => {
-            setGame((oldGame) => ({
-              ...oldGame,
-              6: {
-                ...oldGame[6],
-                cooldownTimers: null,
-              },
-            }));
-          }, pieceValues[PieceTypes.ROOK].cooldown);
+          castleRookInterval = generateCooldownInterval(pieceValues[PieceTypes.ROOK].cooldown, 6);
+          castleRookTimeout = generateCooldownTimeout(pieceValues[PieceTypes.ROOK].cooldown, 6);
+
           setGame((oldGame) => ({
             ...oldGame,
             8: {
@@ -151,43 +138,17 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
             6: {
               ...oldGame[6],
               piece: oldGame[8].piece,
-              cooldownTimers: { interval: rookCastleInterval, timeout: rookCastleTimeout },
+              cooldownTimers: {
+                interval: castleRookInterval,
+                timeout: castleRookTimeout,
+              },
             }
           }));
           break;
           case 'black':
-            rookCastleInterval = setInterval(() => {
-              setGame((oldGame) => {
-                if (!oldGame[targetSquare.id].cooldownTimers) {
-                  clearInterval(progressInterval);
-                  return {
-                    ...oldGame,
-                    62: {
-                      ...oldGame[62],
-                      cooldownProgress: 0,
-                    },
-                  };
-                } else {
-                  return {
-                    ...oldGame,
-                    62: {
-                      ...oldGame[62],
-                      cooldownProgress: oldGame[62].cooldownProgress + 10,
-                    }
-                  };
-                };
-              });
-            }, pieceValues[PieceTypes.ROOK].cooldown / 10);
-      
-            rookCastleTimeout = setTimeout(() => {
-              setGame((oldGame) => ({
-                ...oldGame,
-                62: {
-                  ...oldGame[62],
-                  cooldownTimers: null,
-                },
-              }));
-            }, pieceValues[PieceTypes.ROOK].cooldown);
+            castleRookInterval = generateCooldownInterval(pieceValues[PieceTypes.ROOK].cooldown, 62);
+            castleRookTimeout = generateCooldownTimeout(pieceValues[PieceTypes.ROOK].cooldown, 62);
+
             setGame((oldGame) => ({
               ...oldGame,
               64: {
@@ -197,7 +158,10 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
               62: {
                 ...oldGame[62],
                 piece: oldGame[64].piece,
-                cooldownTimers: { interval: rookCastleInterval, timeout: rookCastleTimeout },
+                cooldownTimers: {
+                  interval: castleRookInterval,
+                  timeout: castleRookTimeout,
+                },
               }
             }));
           break;
@@ -205,45 +169,16 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
       }
     }
 
-    // if castle queen side
+    // rook move if castle queen side
     if (
       piece.name === PieceTypes.KING
       && targetSquare.id === currentSquare.id - 2
     ) {
       switch (piece.color) {
         case 'white':
-          rookCastleInterval = setInterval(() => {
-            setGame((oldGame) => {
-              if (!oldGame[4].cooldownTimers) {
-                clearInterval(rookCastleInterval);
-                return {
-                  ...oldGame,
-                  4: {
-                    ...oldGame[4],
-                    cooldownProgress: 0,
-                  },
-                };
-              } else {
-                return {
-                  ...oldGame,
-                  4: {
-                    ...oldGame[4],
-                    cooldownProgress: oldGame[4].cooldownProgress + 10,
-                  }
-                };
-              };
-            });
-          }, pieceValues[PieceTypes.ROOK].cooldown / 10);
-    
-          rookCastleTimeout = setTimeout(() => {
-            setGame((oldGame) => ({
-              ...oldGame,
-              4: {
-                ...oldGame[4],
-                cooldownTimers: null,
-              },
-            }));
-          }, pieceValues[PieceTypes.ROOK].cooldown);
+          castleRookInterval = generateCooldownInterval(pieceValues[PieceTypes.ROOK].cooldown, 4);
+          castleRookTimeout = generateCooldownTimeout(pieceValues[PieceTypes.ROOK].cooldown, 4);
+
           setGame((oldGame) => ({
             ...oldGame,
             1: {
@@ -253,43 +188,17 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
             4: {
               ...oldGame[4],
               piece: oldGame[1].piece,
-              cooldownTimers: { interval: rookCastleInterval, timeout: rookCastleTimeout },
+              cooldownTimers: {
+                interval: castleRookInterval,
+                timeout: castleRookTimeout,
+              },
             }
           }));
           break;
           case 'black':
-            rookCastleInterval = setInterval(() => {
-              setGame((oldGame) => {
-                if (!oldGame[60].cooldownTimers) {
-                  clearInterval(rookCastleInterval);
-                  return {
-                    ...oldGame,
-                    60: {
-                      ...oldGame[60],
-                      cooldownProgress: 0,
-                    },
-                  };
-                } else {
-                  return {
-                    ...oldGame,
-                    60: {
-                      ...oldGame[60],
-                      cooldownProgress: oldGame[60].cooldownProgress + 10,
-                    }
-                  };
-                };
-              });
-            }, pieceValues[PieceTypes.ROOK].cooldown / 10);
-      
-            rookCastleTimeout = setTimeout(() => {
-              setGame((oldGame) => ({
-                ...oldGame,
-                60: {
-                  ...oldGame[60],
-                  cooldownTimers: null,
-                },
-              }));
-            }, pieceValues[PieceTypes.ROOK].cooldown);
+            castleRookInterval = generateCooldownInterval(pieceValues[PieceTypes.ROOK].cooldown, 60);
+            castleRookTimeout = generateCooldownTimeout(pieceValues[PieceTypes.ROOK].cooldown, 60);
+            
             setGame((oldGame) => ({
               ...oldGame,
               57: {
@@ -299,7 +208,10 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
               60: {
                 ...oldGame[60],
                 piece: oldGame[57].piece,
-                cooldownTimers: { interval: rookCastleInterval, timeout: rookCastleTimeout },
+                cooldownTimers: {
+                  interval: castleRookInterval,
+                  timeout: castleRookTimeout,
+                },
               }
             }));
           break;
@@ -307,6 +219,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
       }
     }
 
+    // remove pawn captured en passant left
     if (
       piece.name === PieceTypes.PAWN
       && !!game[currentSquare.id - 1].piece?.enPassantPossible
@@ -322,6 +235,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
       }));
     }
 
+    // remove pawn captured en passant right
     if (
       piece.name === PieceTypes.PAWN
       && !!game[currentSquare.id + 1].piece?.enPassantPossible
@@ -337,6 +251,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
       }));
     }
 
+    // check win condition
     if (targetSquare.piece && targetSquare.piece.name === PieceTypes.KING) {
       setGameState(targetSquare.piece.color === 'black' ? GameStates.ENDED_WHITE_WIN : GameStates.ENDED_BLACK_WIN);
     }
