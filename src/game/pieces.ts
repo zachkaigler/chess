@@ -15,8 +15,18 @@ export class Piece {
   abb: string | null;
   name: PieceTypes;
   cooldown: number;
+  enPassantPossible?: boolean;
   moveIsValid?(currentSquare: BoardSquare, targetSquare: BoardSquare, board: Board): boolean
 }
+
+export const canBeCapturedEnPassant = (piece: Piece, currentSquare: BoardSquare, targetSquare: BoardSquare): boolean => (
+  piece.name === PieceTypes.PAWN
+  && currentSquare.id === piece.startingSqrId
+  && (
+    targetSquare.id === currentSquare.id + 16
+    || targetSquare.id === currentSquare.id - 16
+  )
+);
 
 export class Pawn extends Piece {
   constructor(startingSqrId: number, color: 'white' | 'black') {
@@ -26,17 +36,22 @@ export class Pawn extends Piece {
     this.abb = null;
     this.name = PieceTypes.PAWN;
     this.cooldown = 1000;
+    this.enPassantPossible = false;
   }
 
   moveIsValid(currentSquare: BoardSquare, targetSquare: BoardSquare, board: Board): boolean {
     const hasPieceToCapture = () => {
       if (this.color === 'white') return (
         targetSquare.id === currentSquare.id + 9 && board[targetSquare.id].piece && board[targetSquare.id].piece?.color !== this.color
+        || targetSquare.id === currentSquare.id + 9 && !targetSquare.piece && board[currentSquare.id + 1].piece && board[currentSquare.id + 1].piece?.enPassantPossible && board[targetSquare.id + 1].piece?.color !== this.color
         || targetSquare.id === currentSquare.id + 7 && targetSquare.piece && board[targetSquare.id].piece?.color !== this.color
+        || targetSquare.id === currentSquare.id + 7 && !targetSquare.piece && board[currentSquare.id - 1].piece && board[currentSquare.id - 1].piece?.enPassantPossible && board[targetSquare.id - 1].piece?.color !== this.color
       );
       return (
         targetSquare.id === currentSquare.id - 9 && board[targetSquare.id].piece && board[targetSquare.id].piece?.color !== this.color
+        || targetSquare.id === currentSquare.id - 9 && !targetSquare.piece && board[currentSquare.id - 1].piece && board[currentSquare.id - 1].piece?.enPassantPossible && board[targetSquare.id - 1].piece?.color !== this.color
         || targetSquare.id === currentSquare.id - 7 && targetSquare.piece && board[targetSquare.id].piece?.color !== this.color
+        || targetSquare.id === currentSquare.id - 7 && !targetSquare.piece && board[currentSquare.id + 1].piece && board[currentSquare.id + 1].piece?.enPassantPossible && board[targetSquare.id + 1].piece?.color !== this.color
       );
     };
 

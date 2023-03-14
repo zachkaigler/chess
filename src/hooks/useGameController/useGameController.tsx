@@ -1,6 +1,6 @@
 import { createContext, useCallback, useState, useContext, useEffect } from "react";
 import { generateBoard, BoardSquare, Board, convertBoardToMatrix } from "../../game/game";
-import { Piece, PieceTypes } from "../../game/pieces";
+import { canBeCapturedEnPassant, Piece, PieceTypes } from "../../game/pieces";
 
 export enum GameStates {
   NOT_STARTED = 'notStarted',
@@ -79,18 +79,47 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
         },
       }));
     }, piece.cooldown);
-    setGame((oldGame) => ({
-      ...oldGame,
-      [currentSquare.id]: {
-        ...oldGame[currentSquare.id],
-        piece: undefined,
-      },
-      [targetSquare.id]: {
-        ...oldGame[targetSquare.id],
-        piece,
-        cooldownTimers: { interval: progressInterval, timeout: cooldownTimer},
-      },
-    }));
+    setGame((oldGame) => {
+      const moveAllowsEnPassant = canBeCapturedEnPassant(piece, currentSquare, targetSquare);
+
+      const enPassantLeft = piece.name === PieceTypes.PAWN && oldGame[currentSquare.id - 1].piece?.enPassantPossible;
+      const enPassantRight = piece.name === PieceTypes.PAWN && oldGame[currentSquare.id + 1].piece?.enPassantPossible;
+
+      return {
+        ...oldGame,
+        [currentSquare.id]: {
+          ...oldGame[currentSquare.id],
+          piece: undefined,
+        },
+        [targetSquare.id]: {
+          ...oldGame[targetSquare.id],
+          piece: moveAllowsEnPassant
+            ? {
+              ...piece,
+              moveIsValid: piece.moveIsValid,
+              enPassantPossible: true,
+            }
+            : {
+              ...piece,
+              moveIsValid: piece.moveIsValid,
+              enPassantPossible: false,
+            },
+          cooldownTimers: { interval: progressInterval, timeout: cooldownTimer },
+        },
+        [currentSquare.id - 1]: enPassantLeft
+          ? {
+            ...oldGame[currentSquare.id - 1],
+            piece: undefined,
+          }
+          : oldGame[currentSquare.id - 1],
+        [currentSquare.id + 1]: enPassantRight
+          ? {
+            ...oldGame[currentSquare.id + 1],
+            piece: undefined,
+          }
+          : oldGame[currentSquare.id + 1]
+      }
+    });
     if (targetSquare.piece && targetSquare.piece.name === PieceTypes.KING) {
       setGameState(targetSquare.piece.color === 'black' ? GameStates.ENDED_WHITE_WIN : GameStates.ENDED_BLACK_WIN);
     }
