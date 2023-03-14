@@ -79,51 +79,54 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
         },
       }));
     }, piece.cooldown);
-    setGame((oldGame) => {
-      const moveAllowsEnPassant = canBeCapturedEnPassant(piece, currentSquare, targetSquare);
-
-      const enPassantLeft = piece.name === PieceTypes.PAWN && oldGame[currentSquare.id - 1].piece?.enPassantPossible;
-      const enPassantRight = piece.name === PieceTypes.PAWN && oldGame[currentSquare.id + 1].piece?.enPassantPossible;
-
-      return {
+    setGame((oldGame) => ({
+      ...oldGame,
+      [currentSquare.id]: {
+        ...oldGame[currentSquare.id],
+        piece: undefined,
+      },
+      [targetSquare.id]: {
+        ...oldGame[targetSquare.id],
+        piece: {
+          ...piece,
+          moveIsValid: piece.moveIsValid,
+          enPassantPossible: canBeCapturedEnPassant(piece, currentSquare, targetSquare) ? true : false,
+        },
+        cooldownTimers: { interval: progressInterval, timeout: cooldownTimer },
+      }
+    }));
+    if (
+      piece.name === PieceTypes.PAWN
+      && !!game[currentSquare.id - 1].piece?.enPassantPossible
+      && game[currentSquare.id - 1].piece?.color !== piece.color
+      && !(targetSquare.id === currentSquare.id + 8 || targetSquare.id === currentSquare.id - 8)
+    ) {
+      setGame((oldGame) => ({
         ...oldGame,
-        [currentSquare.id]: {
-          ...oldGame[currentSquare.id],
+        [currentSquare.id - 1]: {
+          ...oldGame[currentSquare.id - 1],
           piece: undefined,
         },
-        [targetSquare.id]: {
-          ...oldGame[targetSquare.id],
-          piece: moveAllowsEnPassant
-            ? {
-              ...piece,
-              moveIsValid: piece.moveIsValid,
-              enPassantPossible: true,
-            }
-            : {
-              ...piece,
-              moveIsValid: piece.moveIsValid,
-              enPassantPossible: false,
-            },
-          cooldownTimers: { interval: progressInterval, timeout: cooldownTimer },
+      }));
+    }
+    if (
+      piece.name === PieceTypes.PAWN
+      && !!game[currentSquare.id + 1].piece?.enPassantPossible
+      && game[currentSquare.id + 1].piece?.color !== piece.color
+      && !(targetSquare.id === currentSquare.id + 8 || targetSquare.id === currentSquare.id - 8)
+    ) {
+      setGame((oldGame) => ({
+        ...oldGame,
+        [currentSquare.id + 1]: {
+          ...oldGame[currentSquare.id + 1],
+          piece: undefined,
         },
-        [currentSquare.id - 1]: enPassantLeft
-          ? {
-            ...oldGame[currentSquare.id - 1],
-            piece: undefined,
-          }
-          : oldGame[currentSquare.id - 1],
-        [currentSquare.id + 1]: enPassantRight
-          ? {
-            ...oldGame[currentSquare.id + 1],
-            piece: undefined,
-          }
-          : oldGame[currentSquare.id + 1]
-      }
-    });
+      }));
+    }
     if (targetSquare.piece && targetSquare.piece.name === PieceTypes.KING) {
       setGameState(targetSquare.piece.color === 'black' ? GameStates.ENDED_WHITE_WIN : GameStates.ENDED_BLACK_WIN);
     }
-  }, []);
+  }, [game]);
 
   return (
     <GameContext.Provider value={{ game, gameState, movePiece }}>
