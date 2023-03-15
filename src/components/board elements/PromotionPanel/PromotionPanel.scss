@@ -1,0 +1,26 @@
+@import '../../../styles/spacing.scss', '../../../styles/colors.scss', '../../../styles/shadows.scss';
+
+.PromotionPanel__Container {
+  display: grid;
+  grid-template-columns: repeat(2, max-content);
+  grid-template-rows: repeat(2, max-content);
+  position: absolute;
+  z-index: 5;
+  @include dropshadow-lead;
+  
+  &.top {
+    top: 0;
+  }
+
+  &.anchor-right {
+    right: 0;
+  }
+
+  &.anchor-left {
+    left: 0;
+  }
+
+  &.bottom {
+    bottom: 0
+  }
+}

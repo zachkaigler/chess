@@ -1,6 +1,6 @@
 import { createContext, useCallback, useState, useContext, useEffect } from "react";
 import { generateBoard, BoardSquare, Board, convertBoardToMatrix } from "../../game/game";
-import { canBeCapturedEnPassant, Piece, PieceTypes, pieceValues } from "../../game/pieces";
+import { Bishop, canBeCapturedEnPassant, Knight, Piece, PieceTypes, pieceValues, Queen, Rook } from "../../game/pieces";
 
 export enum GameStates {
   NOT_STARTED = 'notStarted',
@@ -15,6 +15,7 @@ interface GameContextValues {
   game: Board,
   gameState: GameStates,
   movePiece(piece: Piece, currentSquare: BoardSquare, targetSquare: BoardSquare): void;
+  promotePawn(square: BoardSquare, promoteTo: PieceTypes.QUEEN | PieceTypes.ROOK | PieceTypes.BISHOP | PieceTypes.KNIGHT): void;
 }
 
 const GameContext = createContext<GameContextValues | undefined>(undefined);
@@ -28,11 +29,30 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
   const [game, setGame] = useState(board);
   const [gameState, setGameState] = useState(GameStates.PLAYING); // TODO: cycle this through all steps eventually
 
-  useEffect(() => {
-    if (convertBoardToMatrix(game).filter((sqr: BoardSquare) => sqr.piece && sqr.piece.name !== PieceTypes.KING).length === 0) {
-      setGameState(GameStates.ENDED_DRAW);
-    }
-  }, [game]);
+  const hasPawn = (square: BoardSquare): boolean => game[square.id].piece?.name === PieceTypes.PAWN;
+
+  const promotionSquaresWithPawns = (): BoardSquare[]=> {
+    const squares = [];
+
+    if (hasPawn(game[1])) squares.push(game[1]);
+    if (hasPawn(game[2])) squares.push(game[2]);
+    if (hasPawn(game[3])) squares.push(game[3]);
+    if (hasPawn(game[4])) squares.push(game[4]);
+    if (hasPawn(game[5])) squares.push(game[5]);
+    if (hasPawn(game[6])) squares.push(game[6]);
+    if (hasPawn(game[7])) squares.push(game[7]);
+    if (hasPawn(game[8])) squares.push(game[8]);
+    if (hasPawn(game[57])) squares.push(game[57]);
+    if (hasPawn(game[58])) squares.push(game[58]);
+    if (hasPawn(game[59])) squares.push(game[59]);
+    if (hasPawn(game[60])) squares.push(game[60]);
+    if (hasPawn(game[61])) squares.push(game[61]);
+    if (hasPawn(game[62])) squares.push(game[62]);
+    if (hasPawn(game[63])) squares.push(game[63]);
+    if (hasPawn(game[64])) squares.push(game[64]);
+
+    return squares;
+  };
 
   const generateCooldownInterval = (cooldown: number, targetSquareId: number) => {
     const progressInterval = setInterval(() => {
@@ -74,6 +94,55 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
 
     return cooldownTimer;
   };
+
+  const openPromotionPanel = useCallback((square: BoardSquare) => {
+    if (square.showPromotionPanel) return;
+    setGame((oldGame) => ({
+      ...oldGame,
+      [square.id]: {
+        ...oldGame[square.id],
+        showPromotionPanel: true,
+      },
+    }));
+  }, [game]);
+
+  const closePromotionPanel = useCallback((square: BoardSquare) => {
+    if (!square.showPromotionPanel) return;
+    setGame((oldGame) => ({
+      ...oldGame,
+      [square.id]: {
+        ...oldGame[square.id],
+        showPromotionPanel: false,
+      },
+    }));
+  }, [game]);
+
+  const promotePawn = useCallback((square: BoardSquare, promoteTo: PieceTypes.QUEEN | PieceTypes.ROOK | PieceTypes.BISHOP | PieceTypes.KNIGHT) => {
+    const generateNewPiece = () => {
+      switch (promoteTo) {
+        case PieceTypes.QUEEN:
+          return new Queen(square.id, square.piece!.color);
+        case PieceTypes.ROOK:
+          return new Rook(square.id, square.piece!.color);
+        case PieceTypes.BISHOP:
+          return new Bishop(square.id, square.piece!.color);
+        case PieceTypes.KNIGHT:
+          return new Knight(square.id, square.piece!.color);
+      }
+    };
+
+    const newPiece = generateNewPiece();
+
+    setGame((oldGame) => ({
+      ...oldGame,
+      [square.id]: {
+        ...oldGame[square.id],
+        piece: newPiece,
+      },
+    }));
+
+    closePromotionPanel(square);
+  }, [game]);
 
   const movePiece = useCallback((piece: Piece, currentSquare: BoardSquare, targetSquare: BoardSquare) => {
     if (gameState !== GameStates.PLAYING) return;
@@ -257,8 +326,22 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     }
   }, [game]);
 
+  // check for draw conditions
+  useEffect(() => {
+    if (convertBoardToMatrix(game).filter((sqr: BoardSquare) => sqr.piece && sqr.piece.name !== PieceTypes.KING).length === 0) {
+      setGameState(GameStates.ENDED_DRAW);
+    }
+  }, [game]);
+
+  // check for pawn on promotion square
+  useEffect(() => {
+    const squares = promotionSquaresWithPawns();
+    if (!squares.length) return;
+    squares.forEach((sqr) => openPromotionPanel(sqr));
+  }, [game]);
+
   return (
-    <GameContext.Provider value={{ game, gameState, movePiece }}>
+    <GameContext.Provider value={{ game, gameState, movePiece, promotePawn }}>
       {children}
     </GameContext.Provider>
   );

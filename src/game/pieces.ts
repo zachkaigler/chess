@@ -57,127 +57,63 @@ export const canBeCapturedEnPassant = (piece: Piece, currentSquare: BoardSquare,
   )
 );
 
-export class Pawn extends Piece {
-  constructor(startingSqrId: number, color: 'white' | 'black') {
-    super();
-    this.color = color;
-    this.startingSqrId = startingSqrId;
-    this.abb = null;
-    this.name = PieceTypes.PAWN;
-    this.value = pieceValues[PieceTypes.PAWN].points;
-    this.cooldown = pieceValues[PieceTypes.PAWN].cooldown;
-    this.enPassantPossible = false;
-  }
-
-  moveIsValid(currentSquare: BoardSquare, targetSquare: BoardSquare, board: Board): boolean {
-    const hasPieceToCapture = () => {
-      if (this.color === 'white') return (
-        targetSquare.id === currentSquare.id + 9 && board[targetSquare.id].piece && board[targetSquare.id].piece?.color !== this.color
-        || targetSquare.id === currentSquare.id + 9 && !targetSquare.piece && board[currentSquare.id + 1].piece && board[currentSquare.id + 1].piece?.enPassantPossible && board[targetSquare.id + 1].piece?.color !== this.color
-        || targetSquare.id === currentSquare.id + 7 && targetSquare.piece && board[targetSquare.id].piece?.color !== this.color
-        || targetSquare.id === currentSquare.id + 7 && !targetSquare.piece && board[currentSquare.id - 1].piece && board[currentSquare.id - 1].piece?.enPassantPossible && board[targetSquare.id - 1].piece?.color !== this.color
-      );
-      return (
-        targetSquare.id === currentSquare.id - 9 && board[targetSquare.id].piece && board[targetSquare.id].piece?.color !== this.color
-        || targetSquare.id === currentSquare.id - 9 && !targetSquare.piece && board[currentSquare.id - 1].piece && board[currentSquare.id - 1].piece?.enPassantPossible && board[targetSquare.id - 1].piece?.color !== this.color
-        || targetSquare.id === currentSquare.id - 7 && targetSquare.piece && board[targetSquare.id].piece?.color !== this.color
-        || targetSquare.id === currentSquare.id - 7 && !targetSquare.piece && board[currentSquare.id + 1].piece && board[currentSquare.id + 1].piece?.enPassantPossible && board[targetSquare.id + 1].piece?.color !== this.color
-      );
-    };
-
-    switch (this.color) {
-      case 'white':
-        if (currentSquare.id === this.startingSqrId) {
-          if (board[currentSquare.id + 8].piece && !hasPieceToCapture()) return false;
-          if (
-            targetSquare.id === currentSquare.id + 8 && !targetSquare.piece
-            || targetSquare.id === currentSquare.id + 16 && !targetSquare.piece
-            || hasPieceToCapture()
-          ) {
-            return true;
-          } else {
-            return false;
-          }
-        } else if (targetSquare.id === currentSquare.id + 8 && !targetSquare.piece) {
-          return true;
-        } else if (hasPieceToCapture()) {
-          return true;
-        } else {
-          return false;
-        }
-      case 'black':
-        if (currentSquare.id === this.startingSqrId) {
-          if (board[currentSquare.id - 8].piece  && !hasPieceToCapture()) return false;
-          if (
-            targetSquare.id === currentSquare.id - 8 && !targetSquare.piece
-            || targetSquare.id === currentSquare.id - 16 && !targetSquare.piece
-            || hasPieceToCapture()
-          ) {
-            return true;
-          } else {
-            return false;
-          }
-        } else if (targetSquare.id === currentSquare.id - 8) {
-          return true;
-        } else if (hasPieceToCapture()) {
-          return true;
-        }else {
-          return false;
-        }
-    };
-  };
-};
+const hasEdgeMismatch = (
+  currentSquareCol: string,
+  currentSquareRank: number,
+  targetSquareCol: string,
+  targetSquareRank: number,
+): Boolean => (
+  currentSquareCol === 'a' && targetSquareCol === 'h'
+  || currentSquareCol === 'a' && targetSquareCol === 'g'
+  || currentSquareCol === 'b' && targetSquareCol === 'h'
+  || currentSquareCol === 'b' && targetSquareCol === 'g'
+  || currentSquareCol === 'h' && targetSquareCol === 'a'
+  || currentSquareCol === 'h' && targetSquareCol === 'b'
+  || currentSquareCol === 'g' && targetSquareCol === 'a'
+  || currentSquareCol === 'g' && targetSquareCol === 'b'
+  || currentSquareRank === 1 && targetSquareRank === 8
+  || currentSquareRank === 1 && targetSquareRank === 7
+  || currentSquareRank === 2 && targetSquareRank === 8
+  || currentSquareRank === 2 && targetSquareRank === 7
+  || currentSquareRank === 8 && targetSquareRank === 1
+  || currentSquareRank === 8 && targetSquareRank === 2
+  || currentSquareRank === 7 && targetSquareRank === 1
+  || currentSquareRank === 7 && targetSquareRank === 2
+);
 
 const checkRookRules = (currentSquare: BoardSquare, targetSquare: BoardSquare, board: Board) => {
-    const targetSquareRank = getRankById(targetSquare.id);
-    const targetSquareCol = getColBySquare(targetSquare);
-    const currentSquareRank = getRankById(currentSquare.id);
-    const currentSquareCol = getColBySquare(currentSquare);
+  const targetSquareRank = getRankById(targetSquare.id);
+  const targetSquareCol = getColBySquare(targetSquare);
+  const currentSquareRank = getRankById(currentSquare.id);
+  const currentSquareCol = getColBySquare(currentSquare);
 
-    const currentRank = Object.values(board).filter((sqr: BoardSquare) => getRankById(sqr.id) === currentSquareRank);
-    const currentCol = Object.values(board).filter((sqr: BoardSquare) => getColBySquare(sqr) === currentSquareCol);
+  const currentRank = Object.values(board).filter((sqr: BoardSquare) => getRankById(sqr.id) === currentSquareRank);
+  const currentCol = Object.values(board).filter((sqr: BoardSquare) => getColBySquare(sqr) === currentSquareCol);
 
-    const piecesOnSameRankToRight = currentRank.filter((sqr: BoardSquare) => sqr.piece && sqr.id > currentSquare.id);
-    const piecesOnSameRankToLeft = currentRank.filter((sqr: BoardSquare) => sqr.piece && sqr.id < currentSquare.id);
-    const piecesOnSameColAbove = currentCol.filter((sqr: BoardSquare) => sqr.piece && sqr.id > currentSquare.id);
-    const piecesOnSameColBelow = currentCol.filter((sqr: BoardSquare) => sqr.piece && sqr.id < currentSquare.id);
+  const piecesOnSameRankToRight = currentRank.filter((sqr: BoardSquare) => sqr.piece && sqr.id > currentSquare.id);
+  const piecesOnSameRankToLeft = currentRank.filter((sqr: BoardSquare) => sqr.piece && sqr.id < currentSquare.id);
+  const piecesOnSameColAbove = currentCol.filter((sqr: BoardSquare) => sqr.piece && sqr.id > currentSquare.id);
+  const piecesOnSameColBelow = currentCol.filter((sqr: BoardSquare) => sqr.piece && sqr.id < currentSquare.id);
 
-    const obstructingRightRankPiece = piecesOnSameRankToRight.sort()[0];
-    const obstructingLeftRankPiece = piecesOnSameRankToLeft.sort()[piecesOnSameRankToLeft.length - 1];
-    const obstructingAboveColPiece = piecesOnSameColAbove.sort()[0];
-    const obstructingBelowColPiece = piecesOnSameColBelow.sort()[piecesOnSameColBelow.length - 1];
+  const obstructingRightRankPiece = piecesOnSameRankToRight.sort()[0];
+  const obstructingLeftRankPiece = piecesOnSameRankToLeft.sort()[piecesOnSameRankToLeft.length - 1];
+  const obstructingAboveColPiece = piecesOnSameColAbove.sort()[0];
+  const obstructingBelowColPiece = piecesOnSameColBelow.sort()[piecesOnSameColBelow.length - 1];
 
-    const spacesShareCol = currentSquareCol === targetSquareCol;
-    const spacesShareRank = targetSquareRank === currentSquareRank;
+  const spacesShareCol = currentSquareCol === targetSquareCol;
+  const spacesShareRank = targetSquareRank === currentSquareRank;
 
-    return (
-      targetSquare.piece?.color !== currentSquare.piece?.color 
-    ) && (
-      targetSquareCol === currentSquareCol
-      || targetSquareRank === currentSquareRank
-    ) && (
-      !((targetSquare.id > obstructingRightRankPiece?.id) && spacesShareRank)
-      && !((targetSquare.id > obstructingAboveColPiece?.id) && spacesShareCol)
-      && !((targetSquare.id < obstructingLeftRankPiece?.id) && spacesShareRank)
-      && !((targetSquare.id < obstructingBelowColPiece?.id)  && spacesShareCol)
-    );
-};
-
-export class Rook extends Piece {
-  constructor(startingSqrId: number, color: 'white' | 'black') {
-    super();
-    this.color = color;
-    this.startingSqrId = startingSqrId;
-    this.abb = 'R';
-    this.name = PieceTypes.ROOK;
-    this.value = pieceValues[PieceTypes.ROOK].points;
-    this.cooldown = pieceValues[PieceTypes.ROOK].cooldown;
-    this.canCastle = true;
-  };
-
-  moveIsValid(currentSquare: BoardSquare, targetSquare: BoardSquare, board: Board): boolean {
-    return checkRookRules(currentSquare, targetSquare, board);
-  };
+  return (
+    targetSquare.piece?.color !== currentSquare.piece?.color 
+  ) && (
+    targetSquareCol === currentSquareCol
+    || targetSquareRank === currentSquareRank
+  ) && (
+    !((targetSquare.id > obstructingRightRankPiece?.id) && spacesShareRank)
+    && !((targetSquare.id > obstructingAboveColPiece?.id) && spacesShareCol)
+    && !((targetSquare.id < obstructingLeftRankPiece?.id) && spacesShareRank)
+    && !((targetSquare.id < obstructingBelowColPiece?.id)  && spacesShareCol)
+  );
 };
 
 const checkBishopRules = (currentSquare: BoardSquare, targetSquare: BoardSquare, board: Board) => {
@@ -209,6 +145,101 @@ const checkBishopRules = (currentSquare: BoardSquare, targetSquare: BoardSquare,
   );
 };
 
+export class Pawn extends Piece {
+  constructor(startingSqrId: number, color: 'white' | 'black') {
+    super();
+    this.color = color;
+    this.startingSqrId = startingSqrId;
+    this.abb = null;
+    this.name = PieceTypes.PAWN;
+    this.value = pieceValues[PieceTypes.PAWN].points;
+    this.cooldown = pieceValues[PieceTypes.PAWN].cooldown;
+    this.enPassantPossible = false;
+  }
+
+  moveIsValid(currentSquare: BoardSquare, targetSquare: BoardSquare, board: Board): boolean {
+    const hasPieceToCapture = () => {
+      const targetSquareRank = getRankById(targetSquare.id);
+      const targetSquareCol = getColBySquare(targetSquare);
+      const currentSquareRank = getRankById(currentSquare.id);
+      const currentSquareCol = getColBySquare(currentSquare);
+
+      if (this.color === 'white') return (
+        !hasEdgeMismatch(currentSquareCol, currentSquareRank, targetSquareCol, targetSquareRank)
+        && (targetSquare.id === currentSquare.id + 9 && board[targetSquare.id].piece && board[targetSquare.id].piece?.color !== this.color
+        || targetSquare.id === currentSquare.id + 9 && !targetSquare.piece && board[currentSquare.id + 1].piece && board[currentSquare.id + 1].piece?.enPassantPossible && board[targetSquare.id + 1].piece?.color !== this.color
+        || targetSquare.id === currentSquare.id + 7 && targetSquare.piece && board[targetSquare.id].piece?.color !== this.color
+        || targetSquare.id === currentSquare.id + 7 && !targetSquare.piece && board[currentSquare.id - 1].piece && board[currentSquare.id - 1].piece?.enPassantPossible && board[targetSquare.id - 1].piece?.color !== this.color)
+      );
+      return (
+        !hasEdgeMismatch(currentSquareCol, currentSquareRank, targetSquareCol, targetSquareRank)
+        && (targetSquare.id === currentSquare.id - 9 && board[targetSquare.id].piece && board[targetSquare.id].piece?.color !== this.color
+        || targetSquare.id === currentSquare.id - 9 && !targetSquare.piece && board[currentSquare.id - 1].piece && board[currentSquare.id - 1].piece?.enPassantPossible && board[targetSquare.id - 1].piece?.color !== this.color
+        || targetSquare.id === currentSquare.id - 7 && targetSquare.piece && board[targetSquare.id].piece?.color !== this.color
+        || targetSquare.id === currentSquare.id - 7 && !targetSquare.piece && board[currentSquare.id + 1].piece && board[currentSquare.id + 1].piece?.enPassantPossible && board[targetSquare.id + 1].piece?.color !== this.color)
+      );
+    };
+
+    switch (this.color) {
+      case 'white':
+        if (currentSquare.id === this.startingSqrId) {
+          if (board[currentSquare.id + 8].piece && !hasPieceToCapture()) return false;
+          if (
+            targetSquare.id === currentSquare.id + 8 && !targetSquare.piece
+            || targetSquare.id === currentSquare.id + 16 && !targetSquare.piece
+            || hasPieceToCapture()
+          ) {
+            return true;
+          } else {
+            return false;
+          }
+        } else if (targetSquare.id === currentSquare.id + 8 && !targetSquare.piece) {
+          return true;
+        } else if (hasPieceToCapture()) {
+          return true;
+        } else {
+          return false;
+        }
+      case 'black':
+        if (currentSquare.id === this.startingSqrId) {
+          if (board[currentSquare.id - 8].piece && !hasPieceToCapture()) return false;
+          if (
+            targetSquare.id === currentSquare.id - 8 && !targetSquare.piece
+            || targetSquare.id === currentSquare.id - 16 && !targetSquare.piece
+            || hasPieceToCapture()
+          ) {
+            return true;
+          } else {
+            return false;
+          }
+        } else if (targetSquare.id === currentSquare.id - 8 && !targetSquare.piece) {
+          return true;
+        } else if (hasPieceToCapture()) {
+          return true;
+        }else {
+          return false;
+        }
+    };
+  };
+};
+
+export class Rook extends Piece {
+  constructor(startingSqrId: number, color: 'white' | 'black') {
+    super();
+    this.color = color;
+    this.startingSqrId = startingSqrId;
+    this.abb = 'R';
+    this.name = PieceTypes.ROOK;
+    this.value = pieceValues[PieceTypes.ROOK].points;
+    this.cooldown = pieceValues[PieceTypes.ROOK].cooldown;
+    this.canCastle = true;
+  };
+
+  moveIsValid(currentSquare: BoardSquare, targetSquare: BoardSquare, board: Board): boolean {
+    return checkRookRules(currentSquare, targetSquare, board);
+  };
+};
+
 export class Bishop extends Piece {
   constructor(startingSqrId: number, color: 'white' | 'black') {
     super();
@@ -224,30 +255,6 @@ export class Bishop extends Piece {
     return checkBishopRules(currentSquare, targetSquare, board);
   };
 };
-
-const hasEdgeMismatch = (
-  currentSquareCol: string,
-  currentSquareRank: number,
-  targetSquareCol: string,
-  targetSquareRank: number,
-): Boolean => (
-  currentSquareCol === 'a' && targetSquareCol === 'h'
-  || currentSquareCol === 'a' && targetSquareCol === 'g'
-  || currentSquareCol === 'b' && targetSquareCol === 'h'
-  || currentSquareCol === 'b' && targetSquareCol === 'g'
-  || currentSquareCol === 'h' && targetSquareCol === 'a'
-  || currentSquareCol === 'h' && targetSquareCol === 'b'
-  || currentSquareCol === 'g' && targetSquareCol === 'a'
-  || currentSquareCol === 'g' && targetSquareCol === 'b'
-  || currentSquareRank === 1 && targetSquareRank === 8
-  || currentSquareRank === 1 && targetSquareRank === 7
-  || currentSquareRank === 2 && targetSquareRank === 8
-  || currentSquareRank === 2 && targetSquareRank === 7
-  || currentSquareRank === 8 && targetSquareRank === 1
-  || currentSquareRank === 8 && targetSquareRank === 2
-  || currentSquareRank === 7 && targetSquareRank === 1
-  || currentSquareRank === 7 && targetSquareRank === 2
-);
 
 export class Knight extends Piece {
   constructor(startingSqrId: number, color: 'white' | 'black') {

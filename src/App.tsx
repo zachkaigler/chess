@@ -11,8 +11,7 @@ import './App.scss';
 
 // TODO: websockets + backend for pvp play
 // TODO: captured pieces show up to side and calculate score
-// TODO: pawn promotion
-// TODO: optimize rendering -> every action is causing 2 rerenders for some reason
+// TODO: optimize rendering
 // TODO: when a piece with a high cooldown captures a lower one, cooldown meter should jump to top and not slowly refill
 
 function App() {

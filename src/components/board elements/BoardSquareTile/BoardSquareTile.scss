@@ -57,6 +57,15 @@
       z-index: 3;
     }
   }
+
+  &.panel {
+    backdrop-filter: blur(10px);
+    background-color: rgba(145, 145, 145, 0.518);
+
+    &:hover {
+      background-color: rgba(196, 196, 196, 0.518);
+    }
+  }
 }
 
 .BoardSquareTile__CooldownProgress {

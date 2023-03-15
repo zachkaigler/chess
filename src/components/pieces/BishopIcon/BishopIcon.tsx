@@ -1,11 +1,11 @@
 import React from 'react';
 import { ChildIconProps } from '../PieceIcon/PieceIcon';
 
-const BishopIcon: React.FC<ChildIconProps> = ({ piece, isDragging, dragRef, ...props }) => {
-  if (piece.color === 'black') return (
+const BishopIcon: React.FC<ChildIconProps> = ({ color, isDragging, dragRef, ...props }) => {
+  if (color === 'black') return (
     <>
       <div style={{ width: '85%', height: '85%', ...props.style  }} ref={dragRef}>
-        <svg width="100%" height="100%" viewBox="0 0 217 328" fill="none" xmlns="http://www.w3.org/2000/svg" cursor={isDragging ? 'grabbing' : 'grab'}>
+        <svg width="100%" height="100%" viewBox="0 0 217 328" fill="none" xmlns="http://www.w3.org/2000/svg" cursor={isDragging === undefined ? 'pointer' : isDragging ? 'grabbing' : 'grab'}>
           <path d="M81.5063 195.869V84.4818L106 62V272H99.5017C81.173 264.165 47.8149 245.737 61.0115 234.701C74.2082 223.664 80.1733 204.214 81.5063 195.869Z" fill="black"/>
           <path d="M136.494 195.869V84.4818L112 62V272H118.498C136.827 264.165 170.185 245.737 156.988 234.701C143.792 223.664 137.827 204.214 136.494 195.869Z" fill="black"/>
           <path d="M110 117V0C92.8371 7.57714 58.4104 29.8183 58.0065 58.1657C57.6027 86.5131 76.0107 109.2 85.2652 117H110Z" fill="black"/>
@@ -31,7 +31,7 @@ const BishopIcon: React.FC<ChildIconProps> = ({ piece, isDragging, dragRef, ...p
   return (
     <>
       <div style={{ width: '85%', height: '85%', ...props.style  }} ref={dragRef}>
-        <svg width="100%" height="100%" viewBox="0 0 217 328" fill="none" xmlns="http://www.w3.org/2000/svg" cursor={isDragging ? 'grabbing' : 'grab'}>
+        <svg width="100%" height="100%" viewBox="0 0 217 328" fill="none" xmlns="http://www.w3.org/2000/svg" cursor={isDragging === undefined ? 'pointer' : isDragging ? 'grabbing' : 'grab'}>
           <path d="M81.5063 195.869V84.4818L106 62V272H99.5017C81.173 264.165 47.8149 245.737 61.0115 234.701C74.2082 223.664 80.1733 204.214 81.5063 195.869Z" fill="#FFFDF0"/>
           <path d="M136.494 195.869V84.4818L112 62V272H118.498C136.827 264.165 170.185 245.737 156.988 234.701C143.792 223.664 137.827 204.214 136.494 195.869Z" fill="#FFFDF0"/>
           <path d="M110 117V0C92.8371 7.57714 58.4104 29.8183 58.0065 58.1657C57.6027 86.5131 76.0107 109.2 85.2652 117H110Z" fill="#FFFDF0"/>

@@ -6,6 +6,7 @@ export interface BoardSquare {
   color: SquareColors;
   cooldownTimers: null | { timeout: number, interval: number };
   cooldownProgress: number;
+  showPromotionPanel: boolean;
   piece?: Piece;
 }
 
@@ -94,6 +95,7 @@ export const generateBoard = () => {
       piece: getStartingPiece(i),
       cooldownTimers: null,
       cooldownProgress: 0,
+      showPromotionPanel: false,
     }
   }
 

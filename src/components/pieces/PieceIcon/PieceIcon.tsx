@@ -1,7 +1,7 @@
 import React, { HTMLAttributes } from 'react';
 import { ConnectDragSource, useDrag } from 'react-dnd';
 import { BoardSquare } from '../../../game/game';
-import { Piece, PieceTypes } from '../../../game/pieces';
+import { PieceTypes } from '../../../game/pieces';
 import BishopIcon from '../BishopIcon/BishopIcon';
 import KingIcon from '../KingIcon/KingIcon';
 import KnightIcon from '../KnightIcon/KnightIcon';
@@ -15,9 +15,9 @@ type PieceIconProps = {
 } & HTMLAttributes<HTMLDivElement>;
 
 export type ChildIconProps = {
-  piece: Piece;
-  isDragging: boolean;
+  color: string;
   dragRef: ConnectDragSource | null;
+  isDragging?: boolean;
 } & HTMLAttributes<HTMLDivElement>;
 
 const PieceIcon: React.FC<PieceIconProps> = ({ square, onCooldown, ...props }) => {
@@ -33,7 +33,7 @@ const PieceIcon: React.FC<PieceIconProps> = ({ square, onCooldown, ...props }) =
   );
 
   const collectedProps = {
-    piece: square.piece!,
+    color: square.piece!.color,
     isDragging,
     dragRef: onCooldown ? null : drag,
     ...props,
