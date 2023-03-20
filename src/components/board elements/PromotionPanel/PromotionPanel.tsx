@@ -1,6 +1,7 @@
 import React from 'react';
 import { BoardSquare } from '../../../game/game';
 import { PieceTypes } from '../../../game/pieces';
+import { useFirebase } from '../../../hooks/useFirebase/useFirebase';
 import { useGameController } from '../../../hooks/useGameController/useGameController';
 import BishopIcon from '../../pieces/BishopIcon/BishopIcon';
 import KnightIcon from '../../pieces/KnightIcon/KnightIcon';
@@ -15,13 +16,14 @@ interface PromotionPanelProps {
 
 const PromotionPanel: React.FC<PromotionPanelProps> = ({ square }) => {
   const { promotePawn } = useGameController();
+  const { myColor } = useFirebase();
 
   const getPanelAnchor = () => {
     if (square.id === 1 || square.id === 57) return 'left';
     return 'right';
   };
 
-  // TODO: this stuff may need to change when perspective is flipped for black?
+  // TODO: realign this stuff for black so queen option is on square where pawn landed
   const anchor = getPanelAnchor();
   const color = square.id >= 57 && square.id <= 64 ? 'white' : 'black';
   const alignment = color === 'black' ? 'bottom' : 'top';
@@ -55,7 +57,7 @@ const PromotionPanel: React.FC<PromotionPanelProps> = ({ square }) => {
   const optsBtmLeft = [opts.knight, opts.bishop, opts.queen, opts.rook];
 
   return (
-    <div className={`PromotionPanel__Container ${anchor === 'left' ? 'anchor-left' : 'anchor-right'} ${color === 'black' ? 'bottom' : 'top'}`}>
+    <div className={`PromotionPanel__Container ${anchor === 'left' ? 'anchor-left' : 'anchor-right'} ${color === 'black' ? 'bottom' : 'top'} ${myColor === 'black' ? 'black-player' : ''}`}>
       {alignment === 'top' && anchor === 'right' && optsTopRight}
       {alignment === 'top' && anchor === 'left' && optsTopLeft}
       {alignment === 'bottom' && anchor === 'right' && optsBtmRight}

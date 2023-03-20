@@ -1,6 +1,7 @@
 import React, { CSSProperties, HTMLAttributes, ReactNode } from 'react';
 import { useDrop } from 'react-dnd';
 import { BoardSquare } from '../../../game/game';
+import { useFirebase } from '../../../hooks/useFirebase/useFirebase';
 import { useGameController } from '../../../hooks/useGameController/useGameController';
 import PieceIcon from '../../pieces/PieceIcon/PieceIcon';
 import PromotionPanel from '../PromotionPanel/PromotionPanel';
@@ -12,8 +13,10 @@ type BoardSquareTileProps = {
 } & HTMLAttributes<HTMLDivElement>;
 
 const BoardSquareTile: React.FC<BoardSquareTileProps> = ({ square, children, ...props }) => {
+  const { myColor } = useFirebase();
+
   if (!square) return (
-    <div className='BoardSquareTile panel' {...props}>
+    <div className={`BoardSquareTile panel ${myColor === 'black' ? 'black-player' : ''}`} {...props}>
       {children}
     </div>
   );
@@ -51,6 +54,7 @@ const BoardSquareTile: React.FC<BoardSquareTileProps> = ({ square, children, ...
   const cooldownTimerStyles: CSSProperties = {
     height: `${100 - square.cooldownProgress}%`,
     transition: !square.piece ? '' : `height ${square.piece.cooldown / 10}ms linear`,
+    // transform: myColor === 'black' ? 'rotate(180deg)' : '',
   };
 
   return (
@@ -59,7 +63,7 @@ const BoardSquareTile: React.FC<BoardSquareTileProps> = ({ square, children, ...
       style={getAddtlStyles()}
       ref={drop}
     >
-      {square.cooldownTimers && <div className='BoardSquareTile__CooldownProgress' style={cooldownTimerStyles} />}
+      {square.cooldownTimers && <div className={`BoardSquareTile__CooldownProgress ${myColor === 'black' ? 'black-player' : 'white-player'}`} style={cooldownTimerStyles} />}
       {square.piece && <PieceIcon square={square} onCooldown={!!square.cooldownTimers} style={{ position: 'absolute', zIndex: 2 }} />}
       {square.showPromotionPanel && <PromotionPanel square={square} />}
       {/* <div style={{

@@ -70,9 +70,18 @@
 
 .BoardSquareTile__CooldownProgress {
   position: absolute;
-  bottom: 0;
-  left: 0;
   z-index: 1;
   width: 100%;
   background-color: $red-light;
+  
+  &.white-player {
+    bottom: 0;
+    left: 0;
+  }
+
+  &.black-player {
+    top: 0;
+    right: 0;
+  }
 }
+

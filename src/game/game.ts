@@ -4,10 +4,10 @@ export interface BoardSquare {
   id: number;
   label: string;
   color: SquareColors;
-  cooldownTimers: null | { timeout: number, interval: number };
+  cooldownTimers: null | { timeout: ReturnType<typeof setTimeout>, interval: ReturnType<typeof setInterval> };
   cooldownProgress: number;
   showPromotionPanel: boolean;
-  piece?: Piece;
+  piece?: Piece | null;
 }
 
 enum SquareColors {

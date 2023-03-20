@@ -1,6 +1,7 @@
 import { createContext, useCallback, useState, useContext, useEffect } from "react";
 import { generateBoard, BoardSquare, Board, convertBoardToMatrix } from "../../game/game";
 import { Bishop, canBeCapturedEnPassant, Knight, Piece, PieceTypes, pieceValues, Queen, Rook } from "../../game/pieces";
+import { useFirebase } from "../useFirebase/useFirebase";
 
 export enum GameStates {
   NOT_STARTED = 'notStarted',
@@ -25,31 +26,66 @@ interface GameProviderProps {
 }
 
 export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
+  const { postToMovesFirebase, lastMove, bothPlayersReady, myColor } = useFirebase();
+
   const { board } = generateBoard();
   const [game, setGame] = useState(board);
-  const [gameState, setGameState] = useState(GameStates.PLAYING); // TODO: cycle this through all steps eventually
+  const [gameState, setGameState] = useState(GameStates.NOT_STARTED); // TODO: cycle this through all steps eventually
+
+  // when both players are ready, start game
+  useEffect(() => {
+    if (!bothPlayersReady) return;
+    setGameState(GameStates.PLAYING);
+  }, [bothPlayersReady]);
+
+  const checkForWinCondition = (targetSquare: BoardSquare) => {
+    if (targetSquare.piece && targetSquare.piece.name === PieceTypes.KING) {
+      setGameState(targetSquare.piece.color === 'black' ? GameStates.ENDED_WHITE_WIN : GameStates.ENDED_BLACK_WIN);
+    }
+  };
+
+  // shovel latest move of opposite color from firebase into state
+  useEffect(() => {
+    const moveColor = lastMove.find((move) => move.piece)?.piece?.color;
+    if (moveColor === myColor) return;
+    lastMove.forEach((move) => {
+      setGame((oldGame) => ({
+        ...oldGame,
+        [move.id]: move,
+      }));
+
+      if (
+        move.piece
+        && game[move.id].piece
+        && game[move.id].piece?.name === PieceTypes.KING
+        && game[move.id].piece?.color === myColor
+      ) {
+        setGameState(move.piece.color === 'black' ? GameStates.ENDED_BLACK_WIN : GameStates.ENDED_WHITE_WIN);
+      }
+    });
+  }, [lastMove]);
 
   const hasPawn = (square: BoardSquare): boolean => game[square.id].piece?.name === PieceTypes.PAWN;
 
   const promotionSquaresWithPawns = (): BoardSquare[]=> {
     const squares = [];
 
-    if (hasPawn(game[1])) squares.push(game[1]);
-    if (hasPawn(game[2])) squares.push(game[2]);
-    if (hasPawn(game[3])) squares.push(game[3]);
-    if (hasPawn(game[4])) squares.push(game[4]);
-    if (hasPawn(game[5])) squares.push(game[5]);
-    if (hasPawn(game[6])) squares.push(game[6]);
-    if (hasPawn(game[7])) squares.push(game[7]);
-    if (hasPawn(game[8])) squares.push(game[8]);
-    if (hasPawn(game[57])) squares.push(game[57]);
-    if (hasPawn(game[58])) squares.push(game[58]);
-    if (hasPawn(game[59])) squares.push(game[59]);
-    if (hasPawn(game[60])) squares.push(game[60]);
-    if (hasPawn(game[61])) squares.push(game[61]);
-    if (hasPawn(game[62])) squares.push(game[62]);
-    if (hasPawn(game[63])) squares.push(game[63]);
-    if (hasPawn(game[64])) squares.push(game[64]);
+    if (hasPawn(game[1]) && game[1].piece?.color === myColor) squares.push(game[1]);
+    if (hasPawn(game[2]) && game[2].piece?.color === myColor) squares.push(game[2]);
+    if (hasPawn(game[3]) && game[3].piece?.color === myColor) squares.push(game[3]);
+    if (hasPawn(game[4]) && game[4].piece?.color === myColor) squares.push(game[4]);
+    if (hasPawn(game[5]) && game[5].piece?.color === myColor) squares.push(game[5]);
+    if (hasPawn(game[6]) && game[6].piece?.color === myColor) squares.push(game[6]);
+    if (hasPawn(game[7]) && game[7].piece?.color === myColor) squares.push(game[7]);
+    if (hasPawn(game[8]) && game[8].piece?.color === myColor) squares.push(game[8]);
+    if (hasPawn(game[57]) && game[57].piece?.color === myColor) squares.push(game[57]);
+    if (hasPawn(game[58]) && game[58].piece?.color === myColor) squares.push(game[58]);
+    if (hasPawn(game[59]) && game[59].piece?.color === myColor) squares.push(game[59]);
+    if (hasPawn(game[60]) && game[60].piece?.color === myColor) squares.push(game[60]);
+    if (hasPawn(game[61]) && game[61].piece?.color === myColor) squares.push(game[61]);
+    if (hasPawn(game[62]) && game[62].piece?.color === myColor) squares.push(game[62]);
+    if (hasPawn(game[63]) && game[63].piece?.color === myColor) squares.push(game[63]);
+    if (hasPawn(game[64]) && game[64].piece?.color === myColor) squares.push(game[64]);
 
     return squares;
   };
@@ -72,7 +108,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
             [targetSquareId]: {
               ...oldGame[targetSquareId],
               cooldownProgress: oldGame[targetSquareId].cooldownProgress + 10,
-            }
+            },
           };
         };
       });
@@ -128,10 +164,16 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
           return new Bishop(square.id, square.piece!.color);
         case PieceTypes.KNIGHT:
           return new Knight(square.id, square.piece!.color);
-      }
+      };
     };
 
     const newPiece = generateNewPiece();
+
+    postToMovesFirebase([{
+      ...game[square.id],
+      piece: newPiece,
+      showPromotionPanel: false,
+    }]);
 
     setGame((oldGame) => ({
       ...oldGame,
@@ -145,12 +187,14 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
   }, [game]);
 
   const movePiece = useCallback((piece: Piece, currentSquare: BoardSquare, targetSquare: BoardSquare) => {
-    if (gameState !== GameStates.PLAYING) return;
-
     const mainMoveInterval = generateCooldownInterval(piece.cooldown, targetSquare.id);
     const mainMoveTimeout = generateCooldownTimeout(piece.cooldown, targetSquare.id);
-    let castleRookInterval: number;
-    let castleRookTimeout: number;
+    let castleRookInterval: ReturnType<typeof setInterval>;
+    let castleRookTimeout: ReturnType<typeof setTimeout>;
+
+    let rookMoveForFirebase;
+    let rookOldSquareForFirebase;
+    let enPassantCaptureForFirebase;
 
     // reset timers on a square after capture
     if (targetSquare.cooldownTimers) {
@@ -198,6 +242,18 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
           castleRookInterval = generateCooldownInterval(pieceValues[PieceTypes.ROOK].cooldown, 6);
           castleRookTimeout = generateCooldownTimeout(pieceValues[PieceTypes.ROOK].cooldown, 6);
 
+          rookOldSquareForFirebase = {
+            ...game[8],
+            piece: null, 
+          };
+
+          rookMoveForFirebase = {
+            ...game[6],
+            piece: game[8].piece,
+          };
+
+          delete rookMoveForFirebase.piece?.moveIsValid;
+
           setGame((oldGame) => ({
             ...oldGame,
             8: {
@@ -206,17 +262,33 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
             },
             6: {
               ...oldGame[6],
-              piece: oldGame[8].piece,
+              piece: {
+                ...oldGame[8].piece!,
+                moveIsValid: oldGame[8].piece!.moveIsValid,
+                canCastle: false,
+              },
               cooldownTimers: {
                 interval: castleRookInterval,
                 timeout: castleRookTimeout,
               },
-            }
+            },
           }));
           break;
           case 'black':
             castleRookInterval = generateCooldownInterval(pieceValues[PieceTypes.ROOK].cooldown, 62);
             castleRookTimeout = generateCooldownTimeout(pieceValues[PieceTypes.ROOK].cooldown, 62);
+            
+            rookOldSquareForFirebase = {
+              ...game[64],
+              piece: null, 
+            };
+
+            rookMoveForFirebase = {
+              ...game[62],
+              piece: game[64].piece,
+            };
+
+            delete rookMoveForFirebase.piece?.moveIsValid;
 
             setGame((oldGame) => ({
               ...oldGame,
@@ -226,12 +298,17 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
               },
               62: {
                 ...oldGame[62],
-                piece: oldGame[64].piece,
+                piece: {
+                  ...oldGame[64].piece!,
+                  moveIsValid: oldGame[64].piece!.moveIsValid,
+                  canCastle: false,
+                },
+                // piece: oldGame[64].piece,
                 cooldownTimers: {
                   interval: castleRookInterval,
                   timeout: castleRookTimeout,
                 },
-              }
+              },
             }));
           break;
           default: return null;  
@@ -248,6 +325,18 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
           castleRookInterval = generateCooldownInterval(pieceValues[PieceTypes.ROOK].cooldown, 4);
           castleRookTimeout = generateCooldownTimeout(pieceValues[PieceTypes.ROOK].cooldown, 4);
 
+          rookOldSquareForFirebase = {
+            ...game[1],
+            piece: null, 
+          };
+
+          rookMoveForFirebase = {
+            ...game[4],
+            piece: game[1].piece,
+          };
+
+          delete rookMoveForFirebase.piece?.moveIsValid;
+
           setGame((oldGame) => ({
             ...oldGame,
             1: {
@@ -256,18 +345,34 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
             },
             4: {
               ...oldGame[4],
-              piece: oldGame[1].piece,
+              // piece: oldGame[1].piece,
+              piece: {
+                ...oldGame[1].piece!,
+                moveIsValid: oldGame[1].piece!.moveIsValid,
+                canCastle: false,
+              },
               cooldownTimers: {
                 interval: castleRookInterval,
                 timeout: castleRookTimeout,
               },
-            }
+            },
           }));
           break;
           case 'black':
             castleRookInterval = generateCooldownInterval(pieceValues[PieceTypes.ROOK].cooldown, 60);
             castleRookTimeout = generateCooldownTimeout(pieceValues[PieceTypes.ROOK].cooldown, 60);
             
+            rookOldSquareForFirebase = {
+              ...game[57],
+              piece: null, 
+            };
+
+            rookMoveForFirebase = {
+              ...game[60],
+              piece: game[57].piece,
+            };
+
+            delete rookMoveForFirebase.piece?.moveIsValid;
             setGame((oldGame) => ({
               ...oldGame,
               57: {
@@ -276,12 +381,17 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
               },
               60: {
                 ...oldGame[60],
-                piece: oldGame[57].piece,
+                // piece: oldGame[57].piece,
+                piece: {
+                  ...oldGame[57].piece!,
+                  moveIsValid: oldGame[57].piece!.moveIsValid,
+                  canCastle: false,
+                },
                 cooldownTimers: {
                   interval: castleRookInterval,
                   timeout: castleRookTimeout,
                 },
-              }
+              },
             }));
           break;
           default: return null;  
@@ -295,12 +405,17 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
       && game[currentSquare.id - 1].piece?.color !== piece.color
       && !(targetSquare.id === currentSquare.id + 8 || targetSquare.id === currentSquare.id - 8)
     ) {
+      enPassantCaptureForFirebase = {
+        ...game[currentSquare.id - 1],
+        piece: null,
+      };
+
       setGame((oldGame) => ({
-        ...oldGame,
-        [currentSquare.id - 1]: {
-          ...oldGame[currentSquare.id - 1],
-          piece: undefined,
-        },
+          ...oldGame,
+          [currentSquare.id - 1]: {
+            ...oldGame[currentSquare.id - 1],
+            piece: undefined,
+          },
       }));
     }
 
@@ -311,6 +426,11 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
       && game[currentSquare.id + 1].piece?.color !== piece.color
       && !(targetSquare.id === currentSquare.id + 8 || targetSquare.id === currentSquare.id - 8)
     ) {
+      enPassantCaptureForFirebase = {
+        ...game[currentSquare.id + 1],
+        piece: null,
+      };
+
       setGame((oldGame) => ({
         ...oldGame,
         [currentSquare.id + 1]: {
@@ -320,11 +440,28 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
       }));
     }
 
-    // check win condition
-    if (targetSquare.piece && targetSquare.piece.name === PieceTypes.KING) {
-      setGameState(targetSquare.piece.color === 'black' ? GameStates.ENDED_WHITE_WIN : GameStates.ENDED_BLACK_WIN);
-    }
-  }, [game]);
+    const sanitizedPiece = piece;
+    delete sanitizedPiece.moveIsValid;
+
+    const firebaseMoves = [
+      { ...currentSquare, piece: null },
+      { ...targetSquare,
+        piece: {
+          ...sanitizedPiece,
+          enPassantPossible: canBeCapturedEnPassant(piece, currentSquare, targetSquare) ? true : false,
+          canCastle: false,
+        },
+      },
+    ];
+
+    if (rookMoveForFirebase) firebaseMoves.push(rookMoveForFirebase!);
+    if (rookOldSquareForFirebase) firebaseMoves.push(rookOldSquareForFirebase);
+    if (enPassantCaptureForFirebase) firebaseMoves.push(enPassantCaptureForFirebase);
+
+    postToMovesFirebase(firebaseMoves);
+
+    checkForWinCondition(targetSquare);
+  }, [game, gameState]);
 
   // check for draw conditions
   useEffect(() => {

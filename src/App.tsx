@@ -7,6 +7,7 @@ import BoardSquareTile from './components/board elements/BoardSquareTile/BoardSq
 import { GameStates, useGameController } from './hooks/useGameController/useGameController';
 import Modal from './components/ui/organisms/Modal/Modal';
 import GameOver from './components/ui/molecules/GameOver/GameOver';
+import { useFirebase } from './hooks/useFirebase/useFirebase';
 import './App.scss';
 
 // TODO: websockets + backend for pvp play
@@ -15,6 +16,7 @@ import './App.scss';
 // TODO: when a piece with a high cooldown captures a lower one, cooldown meter should jump to top and not slowly refill
 
 function App() {
+  const { myColor } = useFirebase();
   const { game, gameState } = useGameController();
   const boardArray = convertBoardToMatrix(game);
 
@@ -32,7 +34,7 @@ function App() {
             <GameOver />
           </Modal>
         )}
-        <div className='Chess__BoardContainer'>
+        <div className={`Chess__BoardContainer ${myColor}`}>
           <div className='Chess__Board'>
             {boardArray.map((square) => (
               <BoardSquareTile
@@ -44,7 +46,7 @@ function App() {
         </div>
       </DndProvider>
     </div>
-  )
-}
+  );
+};
 
-export default App
+export default App;

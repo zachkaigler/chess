@@ -7,6 +7,10 @@
   position: absolute;
   z-index: 5;
   @include dropshadow-lead;
+
+  &.black-player {
+    transform: rotate(180deg);
+  }
   
   &.top {
     top: 0;

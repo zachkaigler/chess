@@ -43,9 +43,9 @@ export class Piece {
   name: PieceTypes;
   value: number | null;
   cooldown: number;
-  enPassantPossible?: boolean;
-  canCastle?: boolean;
-  moveIsValid?(currentSquare: BoardSquare, targetSquare: BoardSquare, board: Board): boolean
+  enPassantPossible: boolean;
+  canCastle: boolean;
+  moveIsValid?(currentSquare: BoardSquare, targetSquare: BoardSquare, board: Board): boolean;
 }
 
 export const canBeCapturedEnPassant = (piece: Piece, currentSquare: BoardSquare, targetSquare: BoardSquare): boolean => (
@@ -155,6 +155,7 @@ export class Pawn extends Piece {
     this.value = pieceValues[PieceTypes.PAWN].points;
     this.cooldown = pieceValues[PieceTypes.PAWN].cooldown;
     this.enPassantPossible = false;
+    this.canCastle = false;
   }
 
   moveIsValid(currentSquare: BoardSquare, targetSquare: BoardSquare, board: Board): boolean {
@@ -233,6 +234,7 @@ export class Rook extends Piece {
     this.value = pieceValues[PieceTypes.ROOK].points;
     this.cooldown = pieceValues[PieceTypes.ROOK].cooldown;
     this.canCastle = true;
+    this.enPassantPossible = false;
   };
 
   moveIsValid(currentSquare: BoardSquare, targetSquare: BoardSquare, board: Board): boolean {
@@ -249,6 +251,8 @@ export class Bishop extends Piece {
     this.name = PieceTypes.BISHOP;
     this.value = pieceValues[PieceTypes.BISHOP].points;
     this.cooldown = pieceValues[PieceTypes.BISHOP].cooldown;
+    this.enPassantPossible = false;
+    this.canCastle = false;
   };
 
   moveIsValid(currentSquare: BoardSquare, targetSquare: BoardSquare, board: Board): boolean {
@@ -265,6 +269,8 @@ export class Knight extends Piece {
     this.name = PieceTypes.KNIGHT;
     this.value = pieceValues[PieceTypes.KNIGHT].points;
     this.cooldown = pieceValues[PieceTypes.KNIGHT].cooldown;
+    this.enPassantPossible = false;
+    this.canCastle = false;
   };
 
   moveIsValid(currentSquare: BoardSquare, targetSquare: BoardSquare, board: Board): boolean {
@@ -299,6 +305,8 @@ export class Queen extends Piece {
     this.name = PieceTypes.QUEEN;
     this.value = pieceValues[PieceTypes.QUEEN].points;
     this.cooldown = pieceValues[PieceTypes.QUEEN].cooldown;
+    this.enPassantPossible = false;
+    this.canCastle = false;
   };
 
   moveIsValid(currentSquare: BoardSquare, targetSquare: BoardSquare, board: Board): boolean {
@@ -316,6 +324,7 @@ export class King extends Piece {
     this.value = pieceValues[PieceTypes.KING].points;
     this.cooldown = pieceValues[PieceTypes.KING].cooldown;
     this.canCastle = true;
+    this.enPassantPossible = false;
   };
 
   moveIsValid(currentSquare: BoardSquare, targetSquare: BoardSquare, board: Board): boolean {

@@ -1,7 +1,9 @@
-import React, { HTMLAttributes } from 'react';
+import React, { CSSProperties, HTMLAttributes } from 'react';
 import { ConnectDragSource, useDrag } from 'react-dnd';
 import { BoardSquare } from '../../../game/game';
 import { PieceTypes } from '../../../game/pieces';
+import { useFirebase } from '../../../hooks/useFirebase/useFirebase';
+import { GameStates, useGameController } from '../../../hooks/useGameController/useGameController';
 import BishopIcon from '../BishopIcon/BishopIcon';
 import KingIcon from '../KingIcon/KingIcon';
 import KnightIcon from '../KnightIcon/KnightIcon';
@@ -17,10 +19,12 @@ type PieceIconProps = {
 export type ChildIconProps = {
   color: string;
   dragRef: ConnectDragSource | null;
-  isDragging?: boolean;
 } & HTMLAttributes<HTMLDivElement>;
 
 const PieceIcon: React.FC<PieceIconProps> = ({ square, onCooldown, ...props }) => {
+  const { gameState } = useGameController();
+  const { myColor } = useFirebase();
+
   const [{ isDragging }, drag] = useDrag(
     () => ({
       type: 'square',
@@ -34,24 +38,29 @@ const PieceIcon: React.FC<PieceIconProps> = ({ square, onCooldown, ...props }) =
 
   const collectedProps = {
     color: square.piece!.color,
-    isDragging,
-    dragRef: onCooldown ? null : drag,
+    dragRef: onCooldown || gameState !== GameStates.PLAYING || myColor !== square.piece!.color ? null : drag,
     ...props,
+  };
+
+  const styles: CSSProperties = {
+    transform: myColor === 'black' ? 'rotate(180deg)' : '',
+    cursor: square.piece?.color !== myColor ? 'default' : square.showPromotionPanel ? 'pointer' : isDragging ? 'grabbing' : 'grab',
+    zIndex: 2,
   };
 
   switch (square.piece?.name) {
     case PieceTypes.PAWN:
-      return <PawnIcon {...collectedProps} />;
+      return <PawnIcon {...collectedProps} style={styles} />;
     case PieceTypes.QUEEN:
-      return <QueenIcon {...collectedProps} />;
+      return <QueenIcon {...collectedProps} style={styles} />;
     case PieceTypes.KING:
-      return <KingIcon {...collectedProps} />;
+      return <KingIcon {...collectedProps} style={styles} />;
     case PieceTypes.BISHOP:
-      return <BishopIcon {...collectedProps} />;
+      return <BishopIcon {...collectedProps} style={styles} />;
     case PieceTypes.KNIGHT:
-      return <KnightIcon {...collectedProps} />;
+      return <KnightIcon {...collectedProps} style={styles} />;
     case PieceTypes.ROOK:
-      return <RookIcon {...collectedProps} />;
+      return <RookIcon {...collectedProps} style={styles} />;
     default: return null;
   }
 };
