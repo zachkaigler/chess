@@ -210,6 +210,10 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
       }));
     }
 
+    const updatedPiece = piece;
+    updatedPiece.enPassantPossible = canBeCapturedEnPassant(piece, currentSquare, targetSquare) ? true : false,
+    updatedPiece.canCastle = false;
+
     // move piece from old square to new square and initiate cooldown
     setGame((oldGame) => ({
       ...oldGame,
@@ -219,12 +223,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
       },
       [targetSquare.id]: {
         ...oldGame[targetSquare.id],
-        piece: {
-          ...piece,
-          moveIsValid: piece.moveIsValid,
-          enPassantPossible: canBeCapturedEnPassant(piece, currentSquare, targetSquare) ? true : false,
-          canCastle: false,
-        },
+        piece: updatedPiece,
         cooldownTimers: {
           interval: mainMoveInterval,
           timeout: mainMoveTimeout,
@@ -254,6 +253,9 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
 
           delete rookMoveForFirebase.piece?.moveIsValid;
 
+          const updatedWRook = game[8].piece;
+          if (updatedWRook) updatedWRook.canCastle = false;
+
           setGame((oldGame) => ({
             ...oldGame,
             8: {
@@ -262,11 +264,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
             },
             6: {
               ...oldGame[6],
-              piece: {
-                ...oldGame[8].piece!,
-                moveIsValid: oldGame[8].piece!.moveIsValid,
-                canCastle: false,
-              },
+              piece: updatedWRook,
               cooldownTimers: {
                 interval: castleRookInterval,
                 timeout: castleRookTimeout,
@@ -290,6 +288,9 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
 
             delete rookMoveForFirebase.piece?.moveIsValid;
 
+            const updatedBRook = game[64].piece;
+            if (updatedBRook) updatedBRook.canCastle = false;
+
             setGame((oldGame) => ({
               ...oldGame,
               64: {
@@ -298,12 +299,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
               },
               62: {
                 ...oldGame[62],
-                piece: {
-                  ...oldGame[64].piece!,
-                  moveIsValid: oldGame[64].piece!.moveIsValid,
-                  canCastle: false,
-                },
-                // piece: oldGame[64].piece,
+                piece: updatedBRook,
                 cooldownTimers: {
                   interval: castleRookInterval,
                   timeout: castleRookTimeout,
@@ -337,6 +333,9 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
 
           delete rookMoveForFirebase.piece?.moveIsValid;
 
+          const updatedWRook = game[1].piece;
+          if (updatedWRook) updatedWRook.canCastle = false;
+
           setGame((oldGame) => ({
             ...oldGame,
             1: {
@@ -345,12 +344,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
             },
             4: {
               ...oldGame[4],
-              // piece: oldGame[1].piece,
-              piece: {
-                ...oldGame[1].piece!,
-                moveIsValid: oldGame[1].piece!.moveIsValid,
-                canCastle: false,
-              },
+              piece: updatedWRook,
               cooldownTimers: {
                 interval: castleRookInterval,
                 timeout: castleRookTimeout,
@@ -373,6 +367,10 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
             };
 
             delete rookMoveForFirebase.piece?.moveIsValid;
+
+            const updatedBRook = game[57].piece;
+            if (updatedBRook) updatedBRook.canCastle = false;
+
             setGame((oldGame) => ({
               ...oldGame,
               57: {
@@ -381,12 +379,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
               },
               60: {
                 ...oldGame[60],
-                // piece: oldGame[57].piece,
-                piece: {
-                  ...oldGame[57].piece!,
-                  moveIsValid: oldGame[57].piece!.moveIsValid,
-                  canCastle: false,
-                },
+                piece: updatedBRook,
                 cooldownTimers: {
                   interval: castleRookInterval,
                   timeout: castleRookTimeout,

@@ -10,7 +10,7 @@ import GameOver from './components/ui/molecules/GameOver/GameOver';
 import { useFirebase } from './hooks/useFirebase/useFirebase';
 import './App.scss';
 
-// TODO: websockets + backend for pvp play
+// BUG: sometimes rooks randomly cover up other pieces?
 // TODO: captured pieces show up to side and calculate score
 // TODO: optimize rendering
 // TODO: when a piece with a high cooldown captures a lower one, cooldown meter should jump to top and not slowly refill
