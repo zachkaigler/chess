@@ -1,6 +1,8 @@
 $white-lead: rgb(244, 244, 244);
+$white-transparent400: rgba(255, 255, 255, 0.447);
 
 $grey-lead: rgb(71, 71, 71);
+$grey-dark: rgb(49, 49, 49);
 
 $black-lead: rgb(21, 21, 21);
 $black-light: rgb(32, 32, 32);
@@ -11,3 +13,7 @@ $blue-dark: rgb(23, 60, 124);
 
 $red-lead: rgba(219, 75, 75, 0.348);
 $red-light: lightpink;
+
+@mixin modal-bg-blur {
+  backdrop-filter: blur(10px);
+}

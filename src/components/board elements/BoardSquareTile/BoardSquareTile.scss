@@ -12,12 +12,11 @@
   position: relative;
 
   &.dark {
-    background-color: $grey-lead;
+    background-color: $grey-dark;
     color: white;
   }
 
   &.light {
-    background-color: $blue-lead;
     color: black;
   }
 
@@ -59,7 +58,7 @@
   }
 
   &.panel {
-    backdrop-filter: blur(10px);
+    @include modal-bg-blur;
     background-color: rgba(145, 145, 145, 0.518);
 
     &:hover {

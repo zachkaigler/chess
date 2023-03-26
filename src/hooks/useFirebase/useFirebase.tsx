@@ -1,8 +1,7 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { FirebaseApp, initializeApp } from 'firebase/app';
 import { useObjectVal } from 'react-firebase-hooks/database';
-import { Database, getDatabase, ref, set, onChildAdded } from 'firebase/database';
-import { v4 as uuidv4 } from 'uuid';
+import { Database, getDatabase, ref, set, onChildAdded, push, DatabaseReference } from 'firebase/database';
 import { getAuth, signInAnonymously, signOut, User, onAuthStateChanged } from 'firebase/auth';
 import { BoardSquare } from "../../game/game";
 
@@ -24,41 +23,99 @@ interface FirebaseContextValues {
   firebase: FirebaseApp;
   db: Database;
   postToMovesFirebase(moves: BoardSquare[]): void;
+  createGame(): Promise<string | null | undefined>;
+  setPlayerReady(playerColor: 'white' | 'black'): void;
   lastMove: BoardSquare[];
   whitePlayer: User | undefined,
   blackPlayer: User | undefined,
   myColor: 'white' | 'black';
   bothPlayersReady: boolean;
+  invalidGame: boolean;
 }
 
 const FirebaseContext = createContext<FirebaseContextValues | undefined>(undefined);
 
 interface FirebaseProviderProps {
   children: React.ReactNode;
+  gameId: string | undefined
 }
 
-export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) => {
-  const movesDbPath = '/games/test/moves/';
-  const whitePlayerDbPath = '/games/test/whitePlayer/';
-  const blackPlayerDbPath = '/games/test/blackPlayer/';
+type Player = {
+  ready: boolean;
+} & User;
 
+// TODO:
+// when both players are ready, start a countdown. at end of countdown, set status to playing
+// do not allow moves to be made until game status on server is "playing"
+
+export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, gameId }) => {
+  const gamesDbPath = '/games/';
+  const gamesRef = ref(db, gamesDbPath);
+
+  const currentGameDbPath = `${gamesDbPath}${gameId}/`;
+  const currentGameRef = useMemo<DatabaseReference>(() => ref(db, currentGameDbPath), [currentGameDbPath]);
+
+  const [currentGame, cgLoading, cgError] = useObjectVal(currentGameRef);
+  const invalidGame = !!(!cgLoading
+    && (
+      !currentGame || cgError
+    )
+  );
+
+  const movesDbPath = `${currentGameDbPath}moves/`;
   const movesRef = ref(db, movesDbPath);
+
+  const whitePlayerDbPath = `${currentGameDbPath}whitePlayer/`;
   const whitePlayerRef = ref(db, whitePlayerDbPath);
+
+  const blackPlayerDbPath = `${currentGameDbPath}blackPlayer/`;
   const blackPlayerRef = ref(db, blackPlayerDbPath);
-  const usersRef = ref(db, '/users/');
 
   const [user, setUser] = useState<User>();
   const [lastMove, setLastMove] = useState<BoardSquare[]>([]);
 
-  const [whitePlayer, wpLoading, wpError] = useObjectVal<User>(whitePlayerRef);
-  const [blackPlayer, bpLoading, bpError] = useObjectVal<User>(blackPlayerRef);
+  const [whitePlayer, wpLoading, wpError] = useObjectVal<Player>(whitePlayerRef);
+  const [blackPlayer, bpLoading, bpError] = useObjectVal<Player>(blackPlayerRef);
 
-  const bothPlayersReady = !!((whitePlayer && !wpLoading && !wpError)
-    && (blackPlayer && !bpLoading && !bpError));
+  const bothPlayersReady = !!((whitePlayer?.ready && !wpLoading && !wpError)
+    && (blackPlayer?.ready && !bpLoading && !bpError));
 
-  const getMyColor = (): 'white' | 'black' => (
-    user?.uid === whitePlayer?.uid ? 'white' : 'black'
-  );
+  const getMyColor = (): 'white' | 'black' => {
+    if (!user || !whitePlayer) return 'white';
+    return user.uid === whitePlayer.uid ? 'white' : 'black';
+  };
+
+  const setPlayerReady = (playerColor: 'white' | 'black') => {
+    if (playerColor === 'white') return set(ref(db, whitePlayerDbPath), { ...whitePlayer, ready: true });
+    set(ref(db, blackPlayerDbPath), { ...blackPlayer, ready: true });
+  };
+
+  const createGame = async () => {
+    try {
+      const newRoomRef = await push(gamesRef, {
+        status: 'not-playing',
+      });
+      return newRoomRef.key;
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  // when a user loads up a new game, add them as one of the players in the game
+  useEffect(() => {
+    if (cgLoading || !user) return;
+    if (!gameId || invalidGame) return;
+    if (whitePlayer && blackPlayer) return;
+
+    if (!whitePlayer) {
+      set(ref(db, whitePlayerDbPath), { uid: user.uid, ready: false });
+      return;
+    };
+    if (whitePlayer && whitePlayer.uid != user.uid) {
+      set(ref(db, blackPlayerDbPath), { uid: user.uid, ready: false });
+      return;
+    }
+  }, [gameId, invalidGame, cgLoading, whitePlayer, user]);
 
   useEffect(() => {
     if (wpLoading) return;
@@ -76,16 +133,6 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) 
       }
     });
 
-    // when new user is detected from firebase, default to making them white player first
-    onChildAdded(usersRef, (snapshot) => {
-      const newUser = snapshot.val();
-      if (!whitePlayer) {
-        set(ref(db, whitePlayerDbPath), { uid: newUser.uid });
-        return;
-      };
-      set(ref(db, blackPlayerDbPath), { uid: newUser.uid });
-    });
-
     // update state with the latest posted moves from firebase
     onChildAdded(movesRef, (snapshot) => {
       const newMoves = snapshot.val();
@@ -93,7 +140,10 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) 
     });
   }, [wpLoading]);
 
-  const postToMovesFirebase = (moves: BoardSquare[]) => set(ref(db, movesDbPath + uuidv4()), moves);
+  const postToMovesFirebase = (moves: BoardSquare[]) => {
+    if (!gameId || invalidGame) return;
+    push(movesRef, moves);
+  };
 
   return (
     <FirebaseContext.Provider value={{
@@ -105,6 +155,9 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) 
         blackPlayer,
         myColor: getMyColor(),
         bothPlayersReady,
+        createGame,
+        setPlayerReady,
+        invalidGame,
       }}>
       {children}
     </FirebaseContext.Provider>

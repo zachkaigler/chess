@@ -1,0 +1,18 @@
+@import '../../../../styles/colors.scss', '../../../../styles/shadows.scss', '../../../../styles/spacing.scss';
+
+.Menu__Container {
+  border-radius: $border-radius-lead;
+  width: 25rem;
+  padding: 3rem;
+  @include dropshadow-lead;
+  color: $blue-dark;
+  background-color: $white-lead;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  h1 {
+    margin-bottom: 1rem;
+  }
+}

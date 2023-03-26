@@ -1,0 +1,40 @@
+@import '../../../styles/colors.scss',
+'../../../styles/spacing.scss',
+'../../../styles/shadows.scss',
+'../../../styles/typography.scss',
+'../../../styles/breakpoints.scss';
+
+.BlockButton__Container {
+  width: 100%;
+  text-align: center;
+  border-radius: $border-radius-lead;
+  color: $white-lead;
+  font-weight: 700;
+  font-size: 1.15rem;
+  padding: 2px;
+  background-color: transparent;
+  // border: 2px solid $blue-lead;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, $blue-dark 0%, $red-lead 100%);
+}
+
+.BlockButton__Inner {
+  width: 100%;
+  text-align: center;
+  border-radius: $border-radius-lead;
+  background-color: $black-light;
+  padding: 1rem;
+  transition: background-color 250ms ease;
+
+  &:hover {
+    background-color: rgb(37, 37, 37);
+
+    &:active {
+      background-color: $black-light;
+    }
+  }
+}

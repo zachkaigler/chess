@@ -23,7 +23,7 @@ export type ChildIconProps = {
 
 const PieceIcon: React.FC<PieceIconProps> = ({ square, onCooldown, ...props }) => {
   const { gameState } = useGameController();
-  const { myColor } = useFirebase();
+  const { myColor, bothPlayersReady } = useFirebase();
 
   const [{ isDragging }, drag] = useDrag(
     () => ({
@@ -44,7 +44,7 @@ const PieceIcon: React.FC<PieceIconProps> = ({ square, onCooldown, ...props }) =
 
   const styles: CSSProperties = {
     transform: myColor === 'black' ? 'rotate(180deg)' : '',
-    cursor: square.piece?.color !== myColor ? 'default' : square.showPromotionPanel ? 'pointer' : isDragging ? 'grabbing' : 'grab',
+    cursor: square.piece?.color !== myColor || !bothPlayersReady ? 'default' : square.showPromotionPanel ? 'pointer' : isDragging ? 'grabbing' : 'grab',
     zIndex: 2,
   };
 
