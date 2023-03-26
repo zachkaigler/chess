@@ -24,10 +24,10 @@ interface FirebaseContextValues {
   db: Database;
   postToMovesFirebase(moves: BoardSquare[]): void;
   createGame(): Promise<string | null | undefined>;
-  setPlayerReady(playerColor: 'white' | 'black'): void;
+  togglePlayerReady(playerColor: 'white' | 'black'): void;
   lastMove: BoardSquare[];
-  whitePlayer: User | undefined,
-  blackPlayer: User | undefined,
+  whitePlayer: Player | undefined,
+  blackPlayer: Player | undefined,
   myColor: 'white' | 'black';
   bothPlayersReady: boolean;
   invalidGame: boolean;
@@ -85,9 +85,9 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, ga
     return user.uid === whitePlayer.uid ? 'white' : 'black';
   };
 
-  const setPlayerReady = (playerColor: 'white' | 'black') => {
-    if (playerColor === 'white') return set(ref(db, whitePlayerDbPath), { ...whitePlayer, ready: true });
-    set(ref(db, blackPlayerDbPath), { ...blackPlayer, ready: true });
+  const togglePlayerReady = (playerColor: 'white' | 'black') => {
+    if (playerColor === 'white') return set(ref(db, whitePlayerDbPath), { ...whitePlayer, ready: !whitePlayer?.ready });
+    set(ref(db, blackPlayerDbPath), { ...blackPlayer, ready: !blackPlayer?.ready });
   };
 
   const createGame = async () => {
@@ -156,7 +156,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, ga
         myColor: getMyColor(),
         bothPlayersReady,
         createGame,
-        setPlayerReady,
+        togglePlayerReady,
         invalidGame,
       }}>
       {children}

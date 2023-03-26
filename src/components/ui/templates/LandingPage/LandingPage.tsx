@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirebase } from '../../../../hooks/useFirebase/useFirebase';
-import BlockButton from '../../atoms/BlockButton';
+import BlockButton from '../../atoms/BlockButton/BlockButton';
 import './LandingPage.scss';
 
 const LandingPage: React.FC = () => {

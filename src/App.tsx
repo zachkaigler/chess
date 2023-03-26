@@ -9,6 +9,9 @@ import LandingPage from './components/ui/templates/LandingPage/LandingPage';
 import './App.scss';
 
 // BUG: sometimes rooks randomly cover up other pieces? (safari only???? -> TODO: show message on non chrome browsers)
+// TODO: style invalid game screen, game over modal
+// TODO: redesign pieces
+// TODO: record demo for landing page
 // TODO: fix orientation of black promotion panel
 // TODO: display opponents cooldown (do this locally, not via firebase)
 // TODO: optimize rendering

@@ -1,8 +1,8 @@
-@import '../../../styles/colors.scss',
-'../../../styles/spacing.scss',
-'../../../styles/shadows.scss',
-'../../../styles/typography.scss',
-'../../../styles/breakpoints.scss';
+@import '../../../../styles/colors.scss',
+'../../../../styles/spacing.scss',
+'../../../../styles/shadows.scss',
+'../../../../styles/typography.scss',
+'../../../../styles/breakpoints.scss';
 
 .BlockButton__Container {
   width: 100%;
@@ -13,7 +13,6 @@
   font-size: 1.15rem;
   padding: 2px;
   background-color: transparent;
-  // border: 2px solid $blue-lead;
   border: none;
   cursor: pointer;
   display: flex;

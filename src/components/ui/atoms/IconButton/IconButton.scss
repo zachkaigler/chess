@@ -1,0 +1,36 @@
+@import '../../../../styles/colors.scss',
+'../../../../styles/spacing.scss',
+'../../../../styles/shadows.scss',
+'../../../../styles/typography.scss',
+'../../../../styles/breakpoints.scss';
+
+.SquareButton__Container {
+  cursor: pointer;
+  border: 2px solid $grey-light;
+  color: $grey-light;
+  min-width: 2rem;
+  aspect-ratio: 1 / 1;
+  transition: all 250ms ease;
+  border-radius: $border-radius-lead;
+  padding: .5rem;
+  background-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: $document-bg;
+
+  filter: drop-shadow(3px 3px 0px $black-lead)
+  drop-shadow(2px 2px 0px $black-lead)
+  drop-shadow(1px 1px 0px $black-lead);
+
+  &:hover {
+    border-color: $blue-lead;
+    color: $blue-lead;
+    background-color: rgba(255, 255, 255, 0.262);
+  }
+
+  &.active {
+    border-color: $green-lead;
+    color: $green-lead;
+  }
+}
