@@ -29,6 +29,8 @@ const Board: React.FC = () => {
     return 'offline';
   };
 
+  const opposingPlayerStatus = getOpposingPlayerStatus();
+
   const gameOver = (
     gameState === GameStates.ENDED_WHITE_WIN
     || gameState === GameStates.ENDED_BLACK_WIN
@@ -53,7 +55,11 @@ const Board: React.FC = () => {
       <div className='Board__Page'>
         <div className={`Chess__BoardContainer ${myColor}`}>
           <div className={`Board__ActionsContainer top ${myColor === 'black' ? 'black' : ''}`}>
-            { myColor === 'white' && <div className={`Board__StatusIndicator ${getOpposingPlayerStatus()}`} />}
+            { myColor === 'white' && (
+              <div className={`Board__StatusIndicator ${opposingPlayerStatus}`}>
+                {opposingPlayerStatus === 'ready' && <FontAwesomeIcon icon={faCheck} />}
+              </div>
+            )}
             { myColor === 'black' && (
               <>
                 <IconButton
@@ -78,7 +84,11 @@ const Board: React.FC = () => {
             ))}
           </div>
           <div className='Board__ActionsContainer bottom'>
-            { myColor === 'black' && <div className={`Board__StatusIndicator ${getOpposingPlayerStatus()}`} />}
+            { myColor === 'black' && (
+              <div className={`Board__StatusIndicator ${opposingPlayerStatus}`}>
+                {opposingPlayerStatus === 'ready' && <FontAwesomeIcon icon={faCheck} />}
+              </div>
+            )}
             { myColor === 'white' && (
               <>
                 <IconButton

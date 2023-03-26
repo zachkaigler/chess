@@ -74,14 +74,16 @@
   width: 1rem;
   aspect-ratio: 1 / 1;
   border-radius: 50%;
-  border: 1px solid $black-lead;
+  border: 1px solid $grey-lead;
+  color: $grey-lead;
+  padding: .25rem;
 
   &.offline {
-    background-color: $grey-light;
+    background-color: $grey-dark;
   }
 
   &.online {
-    background-color: $red-lead;
+    background-color: $green-lead;
   }
 
   &.ready {
