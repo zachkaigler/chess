@@ -9,7 +9,7 @@ import BoardSquareTile from '../BoardSquareTile/BoardSquareTile';
 import './Board.scss';
 
 const Board: React.FC = () => {
-  const { myColor } = useFirebase();
+  const { myColor, setPlayerReady } = useFirebase();
   const { game, gameState } = useGameController();
   const boardArray = convertBoardToMatrix(game);
 
@@ -33,6 +33,12 @@ const Board: React.FC = () => {
           <Menu closeMenu={() => setShowMenu(false)} />
         </Modal>
       )}
+      <button style={{
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        zIndex: 10,
+      }} onClick={() => setPlayerReady(myColor)}>Ready</button>
       <div className={`Chess__BoardContainer ${myColor}`}>
         <div className='Chess__Board'>
           {boardArray.map((square) => (
