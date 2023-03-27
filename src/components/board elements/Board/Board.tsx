@@ -3,11 +3,11 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { convertBoardToMatrix } from '../../../game/game';
+import { useCssTransition } from '../../../hooks/useCssTransition/useCssTransition';
 import { useFirebase } from '../../../hooks/useFirebase/useFirebase';
 import { useGameController, GameStates } from '../../../hooks/useGameController/useGameController';
 import IconButton from '../../ui/atoms/IconButton/IconButton';
 import GameOver from '../../ui/molecules/GameOver/GameOver';
-import Menu from '../../ui/organisms/Menu/Menu';
 import Modal from '../../ui/organisms/Modal/Modal';
 import BoardSquareTile from '../BoardSquareTile/BoardSquareTile';
 import './Board.scss';
@@ -17,8 +17,6 @@ const Board: React.FC = () => {
   const navigate = useNavigate();
   const { game, gameState } = useGameController();
   const boardArray = convertBoardToMatrix(game);
-
-  const [showMenu, setShowMenu] = useState(false);
 
   const myPlayer = myColor === 'white' ? whitePlayer : blackPlayer;
   const opposingPlayer = myColor === 'white' ? blackPlayer : whitePlayer;
@@ -37,6 +35,74 @@ const Board: React.FC = () => {
     || gameState === GameStates.ENDED_DRAW
   );
 
+  interface ActionButtons {
+    [key: string]: {
+      key: string;
+      icon: React.ReactNode;
+      handleClick(): void;
+      active: boolean;
+      description: string;
+    }
+  }
+
+  const buttonOpts: ActionButtons = {
+    ready: {
+      key: 'ready',
+      icon: <FontAwesomeIcon icon={faCheck} />,
+      handleClick: () => togglePlayerReady(myColor),
+      active: !!(myPlayer?.ready),
+      description: 'Ready to Start'
+    },
+    copy: {
+      key: 'copy',
+      icon: <FontAwesomeIcon icon={faCopy} />,
+      handleClick: () => console.log('copied url'),
+      active: false,
+      description: 'Copy Challenge Link'
+    },
+    home: {
+      key: 'home',
+      icon: <FontAwesomeIcon icon={faHouse} />,
+      handleClick: () => navigate('/'),
+      active: false,
+      description: 'Back to Home'
+    },
+  };
+
+  const [activeTip, setActiveTip] = useState<string | null>(null);
+
+  const {
+    cn,
+    styles,
+    showComponent: showTip,
+    hideComponent: hideTip,
+  } = useCssTransition({
+    transitionDurationMs: 500,
+    transitionInClassName: 'visible',
+    transitionOutClassName: 'hidden',
+    additionalClassNames: [
+      'Board__ActionTip',
+    ],
+  });
+
+  const buttons = Object.values(buttonOpts).map((button) => (
+    <IconButton
+      key={button.key}
+      icon={button.icon}
+      onClick={button.handleClick}
+      active={button.active}
+      onMouseOver={() => {
+        if (activeTip === button.description) return;
+        setActiveTip(button.description);
+        showTip();
+      }}
+      onMouseLeave={() => {
+        setActiveTip(null);
+        hideTip();
+      }}
+    />
+  ));
+
   // TODO: make this look nice
   if (invalidGame) return <p style={{ color: 'white' }}>Invalid game.</p>
 
@@ -47,11 +113,6 @@ const Board: React.FC = () => {
           <GameOver />
         </Modal>
       )}
-      {showMenu && (
-        <Modal>
-          <Menu closeMenu={() => setShowMenu(false)} />
-        </Modal>
-      )}
       <div className='Board__Page'>
         <div className={`Chess__BoardContainer ${myColor}`}>
           <div className={`Board__ActionsContainer top ${myColor === 'black' ? 'black' : ''}`}>
@@ -60,20 +121,8 @@ const Board: React.FC = () => {
                 {opposingPlayerStatus === 'ready' && <FontAwesomeIcon icon={faCheck} />}
               </div>
             )}
-            { myColor === 'black' && (
-              <>
-                <IconButton
-                  icon={<FontAwesomeIcon icon={faCheck} />}
-                  onClick={() => togglePlayerReady(myColor)}
-                  active={myPlayer?.ready}
-                />
-                <IconButton icon={<FontAwesomeIcon icon={faCopy} />} />
-                <IconButton
-                  icon={<FontAwesomeIcon icon={faHouse} />}
-                  onClick={() => navigate('/')}
-                />
-              </>
-            )}
+            { myColor === 'black' && <>{buttons}</> }
+            { myColor === 'black' && <p className={cn} style={styles}>{activeTip}</p> }
           </div>
           <div className='Chess__Board'>
             {boardArray.map((square) => (
@@ -85,24 +134,14 @@ const Board: React.FC = () => {
           </div>
           <div className='Board__ActionsContainer bottom'>
             { myColor === 'black' && (
-              <div className={`Board__StatusIndicator ${opposingPlayerStatus}`}>
+              <div className={`Board__StatusIndicator black ${opposingPlayerStatus}`}>
                 {opposingPlayerStatus === 'ready' && <FontAwesomeIcon icon={faCheck} />}
               </div>
             )}
-            { myColor === 'white' && (
-              <>
-                <IconButton
-                  icon={<FontAwesomeIcon icon={faCheck} />}
-                  onClick={() => togglePlayerReady(myColor)}
-                  active={myPlayer?.ready}
-                />
-                <IconButton icon={<FontAwesomeIcon icon={faCopy} />} />
-                <IconButton
-                  icon={<FontAwesomeIcon icon={faHouse} />}
-                  onClick={() => navigate('/')}
-                />
-              </>
-            )}
+            { myColor === 'white' && <>{buttons}</> }
+            {/* TODO: these tips jack up spacing when screen is small. fix */}
+            {/* TODO: transition out isn't working */}
+            { myColor === 'white' && <p className={cn} style={styles}>{activeTip}</p> }
           </div>
         </div>
       </div>

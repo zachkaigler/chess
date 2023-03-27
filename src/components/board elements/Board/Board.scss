@@ -1,4 +1,4 @@
-@import '../../../styles/colors.scss';
+@import '../../../styles/colors.scss', '../../../styles/shadows.scss';
 
 .Board__Page {
   width: 100%;
@@ -44,6 +44,7 @@
   width: 100%;
   display: flex;
   justify-content: flex-start;
+  align-items: center;
   margin-top: .25rem;
 
   & > * {
@@ -71,12 +72,22 @@
 }
 
 .Board__StatusIndicator {
-  width: 1rem;
+  width: .5rem;
   aspect-ratio: 1 / 1;
   border-radius: 50%;
-  border: 1px solid $grey-lead;
+  border: 1px solid $black-lead;
   color: $grey-lead;
   padding: .25rem;
+  font-size: .5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 800;
+  box-shadow: inset -2px -2px 0px $white-transparent200;
+
+  &.black {
+    transform: rotate(180deg);
+  }
 
   &.offline {
     background-color: $grey-dark;
@@ -88,5 +99,25 @@
 
   &.ready {
     background-color: $green-lead;
+  }
+
+}
+
+.Board__ActionTip {
+  color: $white-lead;
+  padding-left: 1rem;
+  color: $blue-lead;
+  font-weight: 700;
+  opacity: 0;
+  margin-left: -1rem;
+  
+  &.hidden {
+    opacity: 0;
+    margin-left: -1rem;
+  }
+
+  &.visible {
+    opacity: 1;
+    margin-left: 0;
   }
 }
