@@ -6,6 +6,7 @@ import { isMobile } from 'react-device-detect';
 import GameWrapper from './components/board elements/GameWrapper/GameWrapper';
 import Board from './components/board elements/Board/Board';
 import LandingPage from './components/ui/templates/LandingPage/LandingPage';
+import Alert from './hooks/useTools/useTools';
 import './App.scss';
 
 // BUG: sometimes rooks randomly cover up other pieces? (safari only???? -> TODO: show message on non chrome browsers)
@@ -27,6 +28,7 @@ const withGameWrapper = (component: React.ReactNode) => (
 function App() {
   return (
     <div className='App'>
+      <Alert />
       <DndProvider backend={isMobile ? TouchBackend : HTML5Backend}>
         <div className='App__BoardContainer'>
           <Routes>

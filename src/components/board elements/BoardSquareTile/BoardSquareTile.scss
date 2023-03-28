@@ -82,5 +82,9 @@
     top: 0;
     right: 0;
   }
+
+  &.opponent {
+    background-color: $grey-light;
+  }
 }
 

@@ -17,6 +17,7 @@ interface GameContextValues {
   gameState: GameStates,
   movePiece(piece: Piece, currentSquare: BoardSquare, targetSquare: BoardSquare): void;
   promotePawn(square: BoardSquare, promoteTo: PieceTypes.QUEEN | PieceTypes.ROOK | PieceTypes.BISHOP | PieceTypes.KNIGHT): void;
+  resetBoard(): void;
 }
 
 const GameContext = createContext<GameContextValues | undefined>(undefined);
@@ -43,27 +44,6 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
       setGameState(targetSquare.piece.color === 'black' ? GameStates.ENDED_WHITE_WIN : GameStates.ENDED_BLACK_WIN);
     }
   };
-
-  // shovel latest move of opposite color from firebase into state
-  useEffect(() => {
-    const moveColor = lastMove.find((move) => move.piece)?.piece?.color;
-    if (moveColor === myColor) return;
-    lastMove.forEach((move) => {
-      setGame((oldGame) => ({
-        ...oldGame,
-        [move.id]: move,
-      }));
-
-      if (
-        move.piece
-        && game[move.id].piece
-        && game[move.id].piece?.name === PieceTypes.KING
-        && game[move.id].piece?.color === myColor
-      ) {
-        setGameState(move.piece.color === 'black' ? GameStates.ENDED_BLACK_WIN : GameStates.ENDED_WHITE_WIN);
-      }
-    });
-  }, [lastMove]);
 
   const hasPawn = (square: BoardSquare): boolean => game[square.id].piece?.name === PieceTypes.PAWN;
 
@@ -131,6 +111,39 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     return cooldownTimer;
   };
 
+    // shovel latest move of opposite color from firebase into state
+    useEffect(() => {
+      const moveColor = lastMove.find((move) => move.piece)?.piece?.color;
+      if (moveColor === myColor) return;
+      lastMove.forEach((move) => {
+        let interval: ReturnType<typeof setInterval>;
+        let timeout: ReturnType<typeof setTimeout>;
+
+        if (move.piece) {
+          interval = generateCooldownInterval(move.piece.cooldown, move.id);
+          timeout = generateCooldownTimeout(move.piece.cooldown, move.id);
+        }
+
+        setGame((oldGame) => ({
+          ...oldGame,
+          [move.id]: {
+            ...move,
+            cooldownTimers: move.piece ? { interval, timeout } : null,
+            cooldownProgress: 0,
+          },
+        }));
+  
+        if (
+          move.piece
+          && game[move.id].piece
+          && game[move.id].piece?.name === PieceTypes.KING
+          && game[move.id].piece?.color === myColor
+        ) {
+          setGameState(move.piece.color === 'black' ? GameStates.ENDED_BLACK_WIN : GameStates.ENDED_WHITE_WIN);
+        }
+      });
+    }, [lastMove]);
+
   const openPromotionPanel = useCallback((square: BoardSquare) => {
     if (square.showPromotionPanel) return;
     setGame((oldGame) => ({
@@ -152,6 +165,11 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
       },
     }));
   }, [game]);
+
+  const resetBoard = () => {
+    setGame(board);
+    setGameState(GameStates.NOT_STARTED);
+  };
 
   const promotePawn = useCallback((square: BoardSquare, promoteTo: PieceTypes.QUEEN | PieceTypes.ROOK | PieceTypes.BISHOP | PieceTypes.KNIGHT) => {
     const generateNewPiece = () => {
@@ -471,7 +489,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
   }, [game]);
 
   return (
-    <GameContext.Provider value={{ game, gameState, movePiece, promotePawn }}>
+    <GameContext.Provider value={{ game, gameState, movePiece, promotePawn, resetBoard }}>
       {children}
     </GameContext.Provider>
   );

@@ -54,7 +54,6 @@ const BoardSquareTile: React.FC<BoardSquareTileProps> = ({ square, children, ...
   const cooldownTimerStyles: CSSProperties = {
     height: `${100 - square.cooldownProgress}%`,
     transition: !square.piece ? '' : `height ${square.piece.cooldown / 10}ms linear`,
-    // transform: myColor === 'black' ? 'rotate(180deg)' : '',
   };
 
   return (
@@ -63,19 +62,9 @@ const BoardSquareTile: React.FC<BoardSquareTileProps> = ({ square, children, ...
       style={getAddtlStyles()}
       ref={drop}
     >
-      {square.cooldownTimers && <div className={`BoardSquareTile__CooldownProgress ${myColor === 'black' ? 'black-player' : 'white-player'}`} style={cooldownTimerStyles} />}
+      {square.cooldownTimers && <div className={`BoardSquareTile__CooldownProgress ${myColor === 'black' ? 'black-player' : 'white-player'} ${myColor !== square.piece?.color ? 'opponent' : ''}`} style={cooldownTimerStyles} />}
       {square.piece && <PieceIcon square={square} onCooldown={!!square.cooldownTimers} style={{ position: 'absolute', zIndex: 2 }} />}
       {square.showPromotionPanel && <PromotionPanel square={square} />}
-      {/* <div style={{
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        color: 'white',
-        fontSize: 10,
-        zIndex: 10,
-      }}>
-        {square.id}
-      </div> */}
     </div>
   );
 };

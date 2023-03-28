@@ -1,6 +1,6 @@
-import { faCheck, faCopy, faHouse } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useState } from 'react';
+import { faCheck, faCopy, faHouse, faRetweet } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useNavigate } from 'react-router-dom';
 import { convertBoardToMatrix } from '../../../game/game';
 import { useCssTransition } from '../../../hooks/useCssTransition/useCssTransition';
@@ -10,16 +10,54 @@ import IconButton from '../../ui/atoms/IconButton/IconButton';
 import GameOver from '../../ui/molecules/GameOver/GameOver';
 import Modal from '../../ui/organisms/Modal/Modal';
 import BoardSquareTile from '../BoardSquareTile/BoardSquareTile';
+import { useAlert } from '../../../hooks/useTools/useTools';
 import './Board.scss';
 
 const Board: React.FC = () => {
-  const { myColor, togglePlayerReady, blackPlayer, whitePlayer, invalidGame } = useFirebase();
+  const {
+    myColor,
+    togglePlayerReady,
+    blackPlayer,
+    whitePlayer,
+    invalidGame,
+    createGame,
+    cleanUpGame,
+  } = useFirebase();
   const navigate = useNavigate();
-  const { game, gameState } = useGameController();
+  const { renderAlert } = useAlert();
+
+  const { game, gameState, resetBoard } = useGameController();
   const boardArray = convertBoardToMatrix(game);
 
   const myPlayer = myColor === 'white' ? whitePlayer : blackPlayer;
   const opposingPlayer = myColor === 'white' ? blackPlayer : whitePlayer;
+
+  const [cleaningUp, setCleaningUp] = useState(false);
+
+  const cleanUp = async () => {
+    await cleanUpGame();
+    resetBoard();
+  };
+
+  const goHome = async () => {
+    setCleaningUp(true);
+    await cleanUp();
+    navigate('/')
+    setCleaningUp(false);
+  };
+
+  const createNewGame = async () => {
+    setCleaningUp(true);
+    await cleanUp();
+    const gameId = await createGame();
+    navigate(`/${gameId}`);
+    setCleaningUp(false);
+  };
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(window.location.href);
+    renderAlert('Challenge link copied to clipboard!');
+  };
 
   const getOpposingPlayerStatus = () => {
     if (opposingPlayer && !opposingPlayer.ready) return 'online';
@@ -56,16 +94,23 @@ const Board: React.FC = () => {
     copy: {
       key: 'copy',
       icon: <FontAwesomeIcon icon={faCopy} />,
-      handleClick: () => console.log('copied url'),
+      handleClick: copyLink,
       active: false,
       description: 'Copy Challenge Link'
+    },
+    newGame: {
+      key: 'newGame',
+      icon: <FontAwesomeIcon icon={faRetweet} />,
+      handleClick: createNewGame,
+      active: false,
+      description: 'Create New Game',
     },
     home: {
       key: 'home',
       icon: <FontAwesomeIcon icon={faHouse} />,
-      handleClick: () => navigate('/'),
+      handleClick: goHome,
       active: false,
-      description: 'Back to Home'
+      description: 'Return Home'
     },
   };
 
@@ -104,7 +149,7 @@ const Board: React.FC = () => {
   ));
 
   // TODO: make this look nice
-  if (invalidGame) return <p style={{ color: 'white' }}>Invalid game.</p>
+  if (invalidGame && !cleaningUp) return <p style={{ color: 'white' }}>Invalid game.</p>
 
   return (
     <>

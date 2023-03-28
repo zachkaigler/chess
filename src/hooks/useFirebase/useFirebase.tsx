@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { FirebaseApp, initializeApp } from 'firebase/app';
+import { initializeApp } from 'firebase/app';
 import { useObjectVal } from 'react-firebase-hooks/database';
-import { Database, getDatabase, ref, set, onChildAdded, push, remove, DatabaseReference } from 'firebase/database';
+import { getDatabase, ref, set, onChildAdded, push, remove, DatabaseReference } from 'firebase/database';
 import { getAuth, signInAnonymously, signOut, User, onAuthStateChanged, Auth } from 'firebase/auth';
 import { BoardSquare } from "../../game/game";
 
@@ -19,6 +19,7 @@ interface FirebaseContextValues {
   postToMovesFirebase(moves: BoardSquare[]): void;
   createGame(): Promise<string | null | undefined>;
   togglePlayerReady(playerColor: 'white' | 'black'): void;
+  cleanUpGame(): Promise<void>;
   lastMove: BoardSquare[];
   whitePlayer: Player | undefined,
   blackPlayer: Player | undefined,
@@ -50,6 +51,9 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, ga
   const gamesDbPath = '/games/';
   const gamesRef = ref(db, gamesDbPath);
 
+  // BUG: for some reason the first move isn't populating on black's screen if
+  // white moves first. The inverse of this does not happen
+
   const currentGameDbPath = useMemo<string>(() => `${gamesDbPath}${gameId}/`, [gameId]);
   const currentGameRef = useMemo<DatabaseReference>(() => ref(db, currentGameDbPath), [currentGameDbPath]);
 
@@ -79,7 +83,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, ga
     && (blackPlayer?.ready && !bpLoading && !bpError));
 
   const getMyColor = (): 'white' | 'black' => {
-    if (user) return user.uid === whitePlayer?.uid ? 'white' : 'black';
+    if (user && whitePlayer) return user.uid === whitePlayer.uid ? 'white' : 'black';
     return 'white';
   };
 
@@ -91,7 +95,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, ga
   const createGame = async () => {
     try {
       const newRoomRef = await push(gamesRef, {
-        status: 'not-playing',
+        status: 'not-started',
       });
       return newRoomRef.key;
     } catch (e) {
@@ -144,12 +148,24 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, ga
     });
   }, [wpLoading]);
 
-  const cleanUpData = useCallback(async () => {
+  const cleanUpGame = useCallback(async () => {
     const isWhitePlayer = user?.uid === whitePlayer?.uid;
     const isBlackPlayer = user?.uid === blackPlayer?.uid;
     if ((isWhitePlayer && !blackPlayer) || (isBlackPlayer && !whitePlayer)) await remove(ref(db, currentGameDbPath));
     if (isWhitePlayer) await remove(ref(db, whitePlayerDbPath));
     if (isBlackPlayer) await remove(ref(db, blackPlayerDbPath));
+  }, [
+    user,
+    db,
+    whitePlayer,
+    whitePlayerDbPath,
+    blackPlayer,
+    blackPlayerDbPath,
+    currentGameDbPath
+  ]);
+
+  const cleanUpData = useCallback(async () => {
+    await cleanUpGame();
     await auth.currentUser?.delete();
   }, [
     auth,
@@ -177,10 +193,15 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, ga
     currentGameDbPath,
   ]);
 
-  const postToMovesFirebase = (moves: BoardSquare[]) => {
-    if (!gameId || invalidGame) return;
-    push(movesRef, moves);
-  };
+  const postToMovesFirebase = useCallback(async (moves: BoardSquare[]) => {
+    console.log('called');
+    try {
+      if (!gameId || invalidGame) return;
+      await push(movesRef, moves);
+    } catch (e) {
+      console.error(e);
+    }
+  }, [gameId, invalidGame]);
 
   return (
     <FirebaseContext.Provider value={{
@@ -193,6 +214,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, ga
         createGame,
         togglePlayerReady,
         invalidGame,
+        cleanUpGame,
       }}>
       {children}
     </FirebaseContext.Provider>

@@ -18,7 +18,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, $blue-dark 0%, $red-lead 100%);
+  @include gradient-lead;
 }
 
 .BlockButton__Inner {

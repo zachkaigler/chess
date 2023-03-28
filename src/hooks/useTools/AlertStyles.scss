@@ -1,0 +1,39 @@
+@import '../../styles/colors.scss', '../../styles/spacing.scss';
+
+.Alert__Container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: fit-content;
+  display: flex;
+  justify-content: center;
+}
+
+.Alert__Border {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 1000;
+  opacity: 0;
+  padding: 2px;
+  background-color: $blue-lead;
+  @include gradient-lead;
+  filter: drop-shadow(3px 3px 0px $black-lead)
+    drop-shadow(2px 2px 0px $black-lead)
+    drop-shadow(1px 1px 0px $black-lead);
+  transition: opacity 250ms ease;
+  border-radius: $border-radius-lead;
+  margin: 0.5rem;
+  overflow: hidden;
+}
+
+.Alert__Content {
+  color: $white-lead;
+  padding: 1rem 2rem;
+  border-radius: $border-radius-lead;
+  background-color: $grey-dark;
+}
+
+.open {
+  opacity: 1;
+}
