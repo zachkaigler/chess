@@ -1,8 +1,8 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { FirebaseApp, initializeApp } from 'firebase/app';
 import { useObjectVal } from 'react-firebase-hooks/database';
-import { Database, getDatabase, ref, set, onChildAdded, push, DatabaseReference } from 'firebase/database';
-import { getAuth, signInAnonymously, signOut, User, onAuthStateChanged } from 'firebase/auth';
+import { Database, getDatabase, ref, set, onChildAdded, push, remove, DatabaseReference } from 'firebase/database';
+import { getAuth, signInAnonymously, signOut, User, onAuthStateChanged, Auth } from 'firebase/auth';
 import { BoardSquare } from "../../game/game";
 
 const firebaseConfig = {
@@ -15,13 +15,7 @@ const firebaseConfig = {
   appId: '1:451538688788:web:ffb56bd67a65a6202cc001'
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-const auth = getAuth(app);
-
 interface FirebaseContextValues {
-  firebase: FirebaseApp;
-  db: Database;
   postToMovesFirebase(moves: BoardSquare[]): void;
   createGame(): Promise<string | null | undefined>;
   togglePlayerReady(playerColor: 'white' | 'black'): void;
@@ -49,10 +43,14 @@ type Player = {
 // do not allow moves to be made until game status on server is "playing"
 
 export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, gameId }) => {
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const auth = useMemo<Auth>(() => getAuth(app), []);
+
   const gamesDbPath = '/games/';
   const gamesRef = ref(db, gamesDbPath);
 
-  const currentGameDbPath = `${gamesDbPath}${gameId}/`;
+  const currentGameDbPath = useMemo<string>(() => `${gamesDbPath}${gameId}/`, [gameId]);
   const currentGameRef = useMemo<DatabaseReference>(() => ref(db, currentGameDbPath), [currentGameDbPath]);
 
   const [currentGame, cgLoading, cgError] = useObjectVal(currentGameRef);
@@ -81,8 +79,8 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, ga
     && (blackPlayer?.ready && !bpLoading && !bpError));
 
   const getMyColor = (): 'white' | 'black' => {
-    if (!user || !whitePlayer) return 'white';
-    return user.uid === whitePlayer.uid ? 'white' : 'black';
+    if (user) return user.uid === whitePlayer?.uid ? 'white' : 'black';
+    return 'white';
   };
 
   const togglePlayerReady = (playerColor: 'white' | 'black') => {
@@ -107,16 +105,23 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, ga
     if (!gameId || invalidGame) return;
     if (whitePlayer && blackPlayer) return;
 
-    if (!whitePlayer) {
+    const isWhitePlayer = user.uid === whitePlayer?.uid;
+    const isBlackPlayer = user.uid === blackPlayer?.uid;
+
+    if (isWhitePlayer || isBlackPlayer) return;
+
+    if (!whitePlayer && !blackPlayer) {
       set(ref(db, whitePlayerDbPath), { uid: user.uid, ready: false });
       return;
     };
-    if (whitePlayer && whitePlayer.uid != user.uid) {
+
+    if (whitePlayer && !blackPlayer && !isWhitePlayer) {
       set(ref(db, blackPlayerDbPath), { uid: user.uid, ready: false });
       return;
     }
-  }, [gameId, invalidGame, cgLoading, whitePlayer, user]);
+  }, [gameId, invalidGame, cgLoading, whitePlayer, blackPlayer, user]);
 
+  // init firebase listeners
   useEffect(() => {
     if (wpLoading) return;
 
@@ -127,7 +132,6 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, ga
     onAuthStateChanged(auth, (_user) => {
       if (_user) {
         setUser(_user);
-        set(ref(db, `/users/${_user.uid}`), { uid: _user.uid });
       } else {
         signOut(auth);
       }
@@ -140,6 +144,39 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, ga
     });
   }, [wpLoading]);
 
+  const cleanUpData = useCallback(async () => {
+    const isWhitePlayer = user?.uid === whitePlayer?.uid;
+    const isBlackPlayer = user?.uid === blackPlayer?.uid;
+    if ((isWhitePlayer && !blackPlayer) || (isBlackPlayer && !whitePlayer)) await remove(ref(db, currentGameDbPath));
+    if (isWhitePlayer) await remove(ref(db, whitePlayerDbPath));
+    if (isBlackPlayer) await remove(ref(db, blackPlayerDbPath));
+    await auth.currentUser?.delete();
+  }, [
+    auth,
+    user,
+    db,
+    whitePlayer,
+    whitePlayerDbPath,
+    blackPlayer,
+    blackPlayerDbPath,
+    currentGameDbPath,
+  ]);
+
+  // clean up anonymous user and game data when the window is closed
+  useEffect(() => {
+    window.addEventListener('unload', cleanUpData);
+    return () => window.removeEventListener('unload', cleanUpData);
+  }, [
+    auth,
+    user,
+    db,
+    whitePlayer,
+    whitePlayerDbPath,
+    blackPlayer,
+    blackPlayerDbPath,
+    currentGameDbPath,
+  ]);
+
   const postToMovesFirebase = (moves: BoardSquare[]) => {
     if (!gameId || invalidGame) return;
     push(movesRef, moves);
@@ -147,8 +184,6 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, ga
 
   return (
     <FirebaseContext.Provider value={{
-        firebase: app, 
-        db,
         postToMovesFirebase,
         lastMove,
         whitePlayer,

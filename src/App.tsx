@@ -12,6 +12,7 @@ import './App.scss';
 // TODO: style invalid game screen, game over modal
 // TODO: redesign pieces
 // TODO: record demo for landing page
+// TODO: on each move, post snapshot of full board to firebase. if user leaves and rejoins mid game, update game state w/ snapshot
 // TODO: fix orientation of black promotion panel
 // TODO: display opponents cooldown (do this locally, not via firebase)
 // TODO: optimize rendering
