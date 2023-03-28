@@ -16,13 +16,16 @@ const firebaseConfig = {
 };
 
 interface FirebaseContextValues {
-  postToMovesFirebase(moves: BoardSquare[]): void;
+  postToMovesFirebase(moves: BoardSquare[], gameUid?: string): void;
+  postWinnerToFirebase(winner: 'white' | 'black' | 'draw'): void;
   createGame(): Promise<string | null | undefined>;
   togglePlayerReady(playerColor: 'white' | 'black'): void;
   cleanUpGame(): Promise<void>;
   lastMove: BoardSquare[];
+  countdown: number;
   whitePlayer: Player | undefined,
   blackPlayer: Player | undefined,
+  currentGame: Game | undefined,
   myColor: 'white' | 'black';
   bothPlayersReady: boolean;
   invalidGame: boolean;
@@ -39,9 +42,13 @@ type Player = {
   ready: boolean;
 } & User;
 
-// TODO:
-// when both players are ready, start a countdown. at end of countdown, set status to playing
-// do not allow moves to be made until game status on server is "playing"
+interface Game {
+  uid: string;
+  status: 'not-started' | 'playing' | 'ended-white-win' | 'ended-black-win';
+  whitePlayer?: Player;
+  blackPlayer?: Player;
+  moves: BoardSquare[];
+}
 
 export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, gameId }) => {
   const app = initializeApp(firebaseConfig);
@@ -51,13 +58,10 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, ga
   const gamesDbPath = '/games/';
   const gamesRef = ref(db, gamesDbPath);
 
-  // BUG: for some reason the first move isn't populating on black's screen if
-  // white moves first. The inverse of this does not happen
-
   const currentGameDbPath = useMemo<string>(() => `${gamesDbPath}${gameId}/`, [gameId]);
   const currentGameRef = useMemo<DatabaseReference>(() => ref(db, currentGameDbPath), [currentGameDbPath]);
 
-  const [currentGame, cgLoading, cgError] = useObjectVal(currentGameRef);
+  const [currentGame, cgLoading, cgError] = useObjectVal<Game>(currentGameRef);
   const invalidGame = !!(!cgLoading
     && (
       !currentGame || cgError
@@ -75,12 +79,25 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, ga
 
   const [user, setUser] = useState<User>();
   const [lastMove, setLastMove] = useState<BoardSquare[]>([]);
+  const [countdown, setCountdown] = useState<number>(3);
 
   const [whitePlayer, wpLoading, wpError] = useObjectVal<Player>(whitePlayerRef);
   const [blackPlayer, bpLoading, bpError] = useObjectVal<Player>(blackPlayerRef);
 
   const bothPlayersReady = !!((whitePlayer?.ready && !wpLoading && !wpError)
     && (blackPlayer?.ready && !bpLoading && !bpError));
+
+  useEffect(() => {
+    if (!bothPlayersReady) return;
+    const interval = setInterval(() => {
+      setCountdown((oldCount) => oldCount - 1);
+    }, 1000);
+
+    if (countdown === -1) set(currentGameRef, { ...currentGame, status: 'playing' });
+    if (countdown === -2) clearInterval(interval);
+
+    return () => clearInterval(interval);
+  }, [bothPlayersReady, countdown]);
 
   const getMyColor = (): 'white' | 'black' => {
     if (user && whitePlayer) return user.uid === whitePlayer.uid ? 'white' : 'black';
@@ -193,22 +210,35 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, ga
     currentGameDbPath,
   ]);
 
-  const postToMovesFirebase = useCallback(async (moves: BoardSquare[]) => {
-    console.log('called');
+  const postToMovesFirebase = async (moves: BoardSquare[], gameUid?: string) => {
     try {
-      if (!gameId || invalidGame) return;
-      await push(movesRef, moves);
+      await push(
+        gameUid ? ref(db, `/games/${gameUid}/moves/`) : currentGameRef,
+        moves
+      );
     } catch (e) {
       console.error(e);
     }
-  }, [gameId, invalidGame]);
+  };
+
+  const postWinnerToFirebase = async (winner: 'white' | 'black' | 'draw') => {
+    try {
+      if (winner === 'draw') return set(currentGameRef, { ...currentGame, status: 'ended-draw' });
+      await set(currentGameRef, { ...currentGame, status: winner === 'white' ? 'ended-white-win' : 'ended-black-win' });
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   return (
     <FirebaseContext.Provider value={{
         postToMovesFirebase,
+        postWinnerToFirebase,
         lastMove,
+        currentGame,
         whitePlayer,
         blackPlayer,
+        countdown,
         myColor: getMyColor(),
         bothPlayersReady,
         createGame,

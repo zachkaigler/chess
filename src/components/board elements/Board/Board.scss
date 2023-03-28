@@ -1,4 +1,4 @@
-@import '../../../styles/colors.scss', '../../../styles/shadows.scss';
+@import '../../../styles/colors.scss', '../../../styles/shadows.scss', '../../../styles/typography.scss';
 
 .Board__Page {
   width: 100%;
@@ -8,6 +8,12 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
+}
+
+.Board__Countdown {
+  color: $white-lead;
+  @include text-3D($grey-light);
+  font-weight: 800;
 }
 
 .Chess__BoardContainer {
@@ -25,12 +31,24 @@
 }
 
 .Chess__Board {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(8, max-content);
   grid-template-rows: repeat(8, max-content);
   border: 1px solid $black-lead;
   background-color: $blue-lead;
-  background: linear-gradient(145deg, $blue-dark 0%, $red-lead 100%);
+  background: linear-gradient(145deg, $blue-dark 0%, $red-dark 100%);
+
+  &.inactive {
+    &::after {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      background-color: rgba(0, 0, 0, 0.242);
+    }
+  }
 }
 
 .Chess__Square {

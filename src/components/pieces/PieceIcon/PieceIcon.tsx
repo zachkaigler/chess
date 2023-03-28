@@ -3,7 +3,7 @@ import { ConnectDragSource, useDrag } from 'react-dnd';
 import { BoardSquare } from '../../../game/game';
 import { PieceTypes } from '../../../game/pieces';
 import { useFirebase } from '../../../hooks/useFirebase/useFirebase';
-import { GameStates, useGameController } from '../../../hooks/useGameController/useGameController';
+import { useGameController } from '../../../hooks/useGameController/useGameController';
 import BishopIcon from '../BishopIcon/BishopIcon';
 import KingIcon from '../KingIcon/KingIcon';
 import KnightIcon from '../KnightIcon/KnightIcon';
@@ -38,7 +38,7 @@ const PieceIcon: React.FC<PieceIconProps> = ({ square, onCooldown, ...props }) =
 
   const collectedProps = {
     color: square.piece!.color,
-    dragRef: onCooldown || gameState !== GameStates.PLAYING || myColor !== square.piece!.color ? null : drag,
+    dragRef: onCooldown || gameState !== 'playing' || myColor !== square.piece!.color ? null : drag,
     ...props,
   };
 

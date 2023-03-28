@@ -1,34 +1,28 @@
-@import '../../../../styles/spacing.scss', '../../../../styles/colors.scss', '../../../../styles/shadows.scss';
-
-// TODO: clean up and make it look nice
+@import '../../../../styles/spacing.scss', '../../../../styles/colors.scss', '../../../../styles/shadows.scss', '../../../../styles/breakpoints.scss';
 
 .GameOver__Container {
   width: 30rem;
   height: fit-content;
-  background-color: $white-lead;
-  border-radius: $border-radius-lead;
-  border: 1px solid $white-lead;
-  @include dropshadow-lead;
+  text-align: center;
+  position: relative;
+  
+  p {
+    padding: 5% 0;
+  }
+
+  h3 {
+    color: $black-lead;
+  }
+
+  @media screen and (max-width: $mobile) {
+    width: 85vw;
+  }
 }
 
-.GameOver__Header {
-  border-top-left-radius: $border-radius-lead;
-  border-top-right-radius: $border-radius-lead;
-  background-color: $blue-dark;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.GameOver__CloseButton {
+  position: absolute;
+  top: -2rem;
+  right: 0;
+  cursor: pointer;
   color: $white-lead;
-}
-
-.GameOver__Content {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 1rem;
-  height: 25vh;
-  background-color: $blue-light;
-  border-bottom-left-radius: $border-radius-lead;
-  border-bottom-right-radius: $border-radius-lead;
 }

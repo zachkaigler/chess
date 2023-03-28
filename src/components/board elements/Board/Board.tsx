@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { faCheck, faCopy, faHouse, faRetweet } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useNavigate } from 'react-router-dom';
 import { convertBoardToMatrix } from '../../../game/game';
 import { useCssTransition } from '../../../hooks/useCssTransition/useCssTransition';
 import { useFirebase } from '../../../hooks/useFirebase/useFirebase';
-import { useGameController, GameStates } from '../../../hooks/useGameController/useGameController';
+import { useGameController } from '../../../hooks/useGameController/useGameController';
 import IconButton from '../../ui/atoms/IconButton/IconButton';
 import GameOver from '../../ui/molecules/GameOver/GameOver';
 import Modal from '../../ui/organisms/Modal/Modal';
@@ -22,6 +22,9 @@ const Board: React.FC = () => {
     invalidGame,
     createGame,
     cleanUpGame,
+    bothPlayersReady,
+    countdown,
+    currentGame,
   } = useFirebase();
   const navigate = useNavigate();
   const { renderAlert } = useAlert();
@@ -31,6 +34,14 @@ const Board: React.FC = () => {
 
   const myPlayer = myColor === 'white' ? whitePlayer : blackPlayer;
   const opposingPlayer = myColor === 'white' ? blackPlayer : whitePlayer;
+
+  const parseCountdown = (): string | null => {
+    if (!bothPlayersReady || currentGame?.status !== 'not-started' || countdown === -1) return null;
+    if (countdown === 0) return 'Go!'
+    return countdown.toString();
+  }
+
+  const countdownValue = parseCountdown();
 
   const [cleaningUp, setCleaningUp] = useState(false);
 
@@ -67,11 +78,17 @@ const Board: React.FC = () => {
 
   const opposingPlayerStatus = getOpposingPlayerStatus();
 
+  const [showGameOverModal, setShowGameOverModal] = useState<boolean>(false);
+
   const gameOver = (
-    gameState === GameStates.ENDED_WHITE_WIN
-    || gameState === GameStates.ENDED_BLACK_WIN
-    || gameState === GameStates.ENDED_DRAW
+    gameState === 'ended-white-win'
+    || gameState === 'ended-black-win'
+    || gameState === 'ended-draw'
   );
+
+  useEffect(() => {
+    if (gameOver) setShowGameOverModal(true);
+  }, [gameOver])
 
   interface ActionButtons {
     [key: string]: {
@@ -153,9 +170,14 @@ const Board: React.FC = () => {
 
   return (
     <>
-      {gameOver && (
+      {showGameOverModal && (
         <Modal>
-          <GameOver />
+          <GameOver handleClose={() => setShowGameOverModal(false)} />
+        </Modal>
+      )}
+      {countdownValue && (
+        <Modal>
+          <h1 className='Board__Countdown'>{countdownValue}</h1>
         </Modal>
       )}
       <div className='Board__Page'>
@@ -169,7 +191,7 @@ const Board: React.FC = () => {
             { myColor === 'black' && <>{buttons}</> }
             { myColor === 'black' && <p className={cn} style={styles}>{activeTip}</p> }
           </div>
-          <div className='Chess__Board'>
+          <div className={`Chess__Board ${showGameOverModal || countdownValue ? 'inactive' : ''}`}>
             {boardArray.map((square) => (
               <BoardSquareTile
                 key={square.id}

@@ -1,19 +1,12 @@
 .Modal__Container {
   left: 0;
-  top: 0;
-  width: fit-content;
+  top: 50%;
+  width: 100%;
   height: fit-content;
   position: fixed;
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 99997;
-}
-
-.Modal__Background {
-  width: 100dvw;
-  width: 100vw;
-  height: 100vh;
   z-index: 99998;
 }
 

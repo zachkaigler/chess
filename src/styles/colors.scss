@@ -13,17 +13,23 @@ $blue-lead: rgb(163, 189, 235);
 $blue-light: rgb(210, 224, 246);
 $blue-dark: rgb(23, 60, 124);
 
-$red-lead: rgba(219, 75, 75, 0.348);
+$red-lead: rgb(204, 77, 96);
+$red-dark: rgba(219, 75, 75, 0.348);
 $red-light: lightpink;
 
 $green-lead: lightgreen;
+$green-dark: rgb(103, 188, 103);
 
 @mixin modal-bg-blur {
   backdrop-filter: blur(10px);
 }
 
 @mixin gradient-lead {
-  background: linear-gradient(135deg, $blue-dark 0%, $red-lead 100%);
+  background: linear-gradient(135deg, $blue-dark 0%, $red-dark 100%);
+}
+
+@mixin gradient-slant($color1, $color2) {
+  background: linear-gradient(135deg, $color1 0%, $color2 100%);
 }
 
 $document-bg: $black-light;

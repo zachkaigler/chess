@@ -1,0 +1,59 @@
+@import '../../../../styles/colors.scss',
+'../../../../styles/spacing.scss',
+'../../../../styles/shadows.scss',
+'../../../../styles/typography.scss',
+'../../../../styles/breakpoints.scss';
+
+.Panel {
+  border-radius: $border-radius-lead;
+  background-color: $grey-lead;
+  background: linear-gradient(180deg, $grey-lead 0%, $grey-dark 100%);
+  overflow: hidden;
+
+  filter: drop-shadow(6px 6px 0px $black-lead)
+    drop-shadow(5px 5px 0px $black-lead)
+    drop-shadow(4px 4px 0px $black-lead);
+}
+
+.Panel__Header {
+  text-align: center;
+  width: 100%;
+  padding: 1.5rem 0;
+  font-weight: 700;
+  color: $white-lead;
+
+  &.gradient {
+    background-color: $blue-dark;
+    background: linear-gradient(135deg, $black-lead 0%, $blue-dark 35%, $red-dark 100%);
+  }
+
+  &.blue {
+    background-color: $blue-lead;
+    @include gradient-slant($blue-dark, $blue-lead);
+  }
+
+  &.green {
+    background-color: $green-lead;
+    @include gradient-slant($green-dark, $green-lead);
+  }
+
+  &.red {
+    background-color: $red-lead;
+    @include gradient-slant($red-dark, $red-lead);
+  }
+}
+
+.Panel__Content {
+  padding: 5%;
+
+  h4 {
+    color: $blue-lead;
+    font-weight: 600;
+    margin-bottom: .5rem;
+  }
+
+  p {
+    margin-bottom: 1rem;
+    color: $white-lead;
+  }
+}

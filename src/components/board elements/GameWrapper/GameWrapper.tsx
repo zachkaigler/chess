@@ -16,7 +16,7 @@ const GameWrapper: React.FC<GameWrapperProps> = ({ children }) => {
         {children}
       </GameProvider>
     </FirebaseProvider>
-  )
-}
+  );
+};
 
 export default GameWrapper;

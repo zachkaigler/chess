@@ -1,5 +1,6 @@
 import React, { CSSProperties, HTMLAttributes, ReactNode } from 'react';
 import { useDrop } from 'react-dnd';
+import { useParams } from 'react-router-dom';
 import { BoardSquare } from '../../../game/game';
 import { useFirebase } from '../../../hooks/useFirebase/useFirebase';
 import { useGameController } from '../../../hooks/useGameController/useGameController';
@@ -14,6 +15,7 @@ type BoardSquareTileProps = {
 
 const BoardSquareTile: React.FC<BoardSquareTileProps> = ({ square, children, ...props }) => {
   const { myColor } = useFirebase();
+  const { game: gameId } = useParams();
 
   if (!square) return (
     <div className={`BoardSquareTile panel ${myColor === 'black' ? 'black-player' : ''}`} {...props}>
@@ -27,7 +29,7 @@ const BoardSquareTile: React.FC<BoardSquareTileProps> = ({ square, children, ...
     () => ({
       accept: 'square',
       canDrop: (item: BoardSquare) => item.piece!.moveIsValid!(item, square, game),
-      drop: (item: BoardSquare) => movePiece(item.piece!, item, square),
+      drop: (item: BoardSquare) => movePiece(item.piece!, item, square, gameId!),
       collect: (monitor) => ({
         isOver: !!monitor.isOver(),
         canDrop: !!monitor.canDrop(),

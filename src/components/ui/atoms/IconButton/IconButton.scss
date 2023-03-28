@@ -27,6 +27,10 @@
     border-color: $blue-lead;
     color: $blue-lead;
     background-color: rgba(255, 255, 255, 0.262);
+
+    &:active {
+      transform: translate(1px, 1px);
+    }
   }
 
   &.active {

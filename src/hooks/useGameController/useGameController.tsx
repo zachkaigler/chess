@@ -3,19 +3,10 @@ import { generateBoard, BoardSquare, Board, convertBoardToMatrix } from "../../g
 import { Bishop, canBeCapturedEnPassant, Knight, Piece, PieceTypes, pieceValues, Queen, Rook } from "../../game/pieces";
 import { useFirebase } from "../useFirebase/useFirebase";
 
-export enum GameStates {
-  NOT_STARTED = 'notStarted',
-  STARTING = 'starting',
-  PLAYING = 'playing',
-  ENDED_WHITE_WIN = 'endedWhiteWin',
-  ENDED_BLACK_WIN = 'endedBlackWin',
-  ENDED_DRAW = 'endedDraw',
-}
-
 interface GameContextValues {
   game: Board,
-  gameState: GameStates,
-  movePiece(piece: Piece, currentSquare: BoardSquare, targetSquare: BoardSquare): void;
+  gameState: 'not-started' | 'playing' | 'ended-white-win' | 'ended-black-win' | 'ended-draw' |undefined,
+  movePiece(piece: Piece, currentSquare: BoardSquare, targetSquare: BoardSquare, gameId: string): void;
   promotePawn(square: BoardSquare, promoteTo: PieceTypes.QUEEN | PieceTypes.ROOK | PieceTypes.BISHOP | PieceTypes.KNIGHT): void;
   resetBoard(): void;
 }
@@ -27,21 +18,15 @@ interface GameProviderProps {
 }
 
 export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
-  const { postToMovesFirebase, lastMove, bothPlayersReady, myColor } = useFirebase();
+  const { postToMovesFirebase, postWinnerToFirebase, lastMove, myColor, currentGame } = useFirebase();
 
   const { board } = generateBoard();
   const [game, setGame] = useState(board);
-  const [gameState, setGameState] = useState(GameStates.NOT_STARTED); // TODO: cycle this through all steps eventually
-
-  // when both players are ready, start game
-  useEffect(() => {
-    if (!bothPlayersReady) return;
-    setGameState(GameStates.PLAYING);
-  }, [bothPlayersReady]);
+  const gameState = currentGame?.status;
 
   const checkForWinCondition = (targetSquare: BoardSquare) => {
     if (targetSquare.piece && targetSquare.piece.name === PieceTypes.KING) {
-      setGameState(targetSquare.piece.color === 'black' ? GameStates.ENDED_WHITE_WIN : GameStates.ENDED_BLACK_WIN);
+      postWinnerToFirebase(targetSquare.piece.color === 'black' ? 'white' : 'black');
     }
   };
 
@@ -132,15 +117,6 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
             cooldownProgress: 0,
           },
         }));
-  
-        if (
-          move.piece
-          && game[move.id].piece
-          && game[move.id].piece?.name === PieceTypes.KING
-          && game[move.id].piece?.color === myColor
-        ) {
-          setGameState(move.piece.color === 'black' ? GameStates.ENDED_BLACK_WIN : GameStates.ENDED_WHITE_WIN);
-        }
       });
     }, [lastMove]);
 
@@ -168,7 +144,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
 
   const resetBoard = () => {
     setGame(board);
-    setGameState(GameStates.NOT_STARTED);
+    // setGameState(GameStates.NOT_STARTED);
   };
 
   const promotePawn = useCallback((square: BoardSquare, promoteTo: PieceTypes.QUEEN | PieceTypes.ROOK | PieceTypes.BISHOP | PieceTypes.KNIGHT) => {
@@ -204,7 +180,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     closePromotionPanel(square);
   }, [game]);
 
-  const movePiece = useCallback((piece: Piece, currentSquare: BoardSquare, targetSquare: BoardSquare) => {
+  const movePiece = useCallback((piece: Piece, currentSquare: BoardSquare, targetSquare: BoardSquare, gameId: string) => {
     const mainMoveInterval = generateCooldownInterval(piece.cooldown, targetSquare.id);
     const mainMoveTimeout = generateCooldownTimeout(piece.cooldown, targetSquare.id);
     let castleRookInterval: ReturnType<typeof setInterval>;
@@ -469,7 +445,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     if (rookOldSquareForFirebase) firebaseMoves.push(rookOldSquareForFirebase);
     if (enPassantCaptureForFirebase) firebaseMoves.push(enPassantCaptureForFirebase);
 
-    postToMovesFirebase(firebaseMoves);
+    postToMovesFirebase(firebaseMoves, gameId);
 
     checkForWinCondition(targetSquare);
   }, [game, gameState]);
@@ -477,7 +453,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
   // check for draw conditions
   useEffect(() => {
     if (convertBoardToMatrix(game).filter((sqr: BoardSquare) => sqr.piece && sqr.piece.name !== PieceTypes.KING).length === 0) {
-      setGameState(GameStates.ENDED_DRAW);
+      postWinnerToFirebase('draw');
     }
   }, [game]);
 
