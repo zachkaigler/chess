@@ -51,9 +51,8 @@ const LandingPage: React.FC = () => {
             autoPlay
             loop
             muted
-            // onCanPlay={() => setLoaded(true)}
           >
-            <source src='src/assets/demo.mov' type='video/mp4' />
+            <source src='src/assets/demo.mp4' type='video/mp4' />
           </video>
           </div>
         </section>
