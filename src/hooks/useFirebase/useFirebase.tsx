@@ -168,6 +168,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, ga
   const cleanUpGame = useCallback(async () => {
     const isWhitePlayer = user?.uid === whitePlayer?.uid;
     const isBlackPlayer = user?.uid === blackPlayer?.uid;
+    setCountdown(3);
     if ((isWhitePlayer && !blackPlayer) || (isBlackPlayer && !whitePlayer)) await remove(ref(db, currentGameDbPath));
     if (isWhitePlayer) await remove(ref(db, whitePlayerDbPath));
     if (isBlackPlayer) await remove(ref(db, blackPlayerDbPath));
