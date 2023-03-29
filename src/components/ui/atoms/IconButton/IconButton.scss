@@ -23,6 +23,34 @@
   drop-shadow(2px 2px 0px $black-lead)
   drop-shadow(1px 1px 0px $black-lead);
 
+  &.highlight {
+    @include icon-button-pulse-animation($grey-light, $white-dark, 3s, linear);
+
+    &:hover {
+      border-color: $blue-lead;
+      color: $blue-lead;
+      background-color: rgba(255, 255, 255, 0.262);
+      animation: unset;      
+
+      &:active {
+        transform: translate(1px, 1px);
+      }
+    }
+  }
+
+  &:disabled {
+    border-color: $grey-dark;
+    color: $grey-dark;
+    cursor: default;
+    
+    &:hover {
+      border-color: $grey-dark;
+      color: $grey-dark;
+      cursor: default;
+      background-color: $document-bg;
+    }
+  }
+
   &:hover {
     border-color: $blue-lead;
     color: $blue-lead;

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { faCheck, faCopy, faHouse, faRetweet } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { convertBoardToMatrix } from '../../../game/game';
 import { useCssTransition } from '../../../hooks/useCssTransition/useCssTransition';
 import { useFirebase } from '../../../hooks/useFirebase/useFirebase';
@@ -20,16 +20,16 @@ const Board: React.FC = () => {
     blackPlayer,
     whitePlayer,
     invalidGame,
-    createGame,
     cleanUpGame,
     bothPlayersReady,
     countdown,
     currentGame,
   } = useFirebase();
   const navigate = useNavigate();
+  const { game: gameId } = useParams();
   const { renderAlert } = useAlert();
 
-  const { game, gameState, resetBoard } = useGameController();
+  const { game, gameOver, resetBoard } = useGameController();
   const boardArray = convertBoardToMatrix(game);
 
   const myPlayer = myColor === 'white' ? whitePlayer : blackPlayer;
@@ -47,22 +47,26 @@ const Board: React.FC = () => {
 
   const cleanUp = async () => {
     await cleanUpGame();
-    resetBoard();
+    resetBoard(gameId!);
   };
 
   const goHome = async () => {
     setCleaningUp(true);
     await cleanUp();
-    navigate('/')
+    navigate('/');
     setCleaningUp(false);
   };
 
-  const createNewGame = async () => {
-    setCleaningUp(true);
-    await cleanUp();
-    const gameId = await createGame();
-    navigate(`/${gameId}`);
-    setCleaningUp(false);
+  const [showGameOverModal, setShowGameOverModal] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (gameOver) setShowGameOverModal(true);
+  }, [gameOver])
+
+  const resetGame = () => {
+    if (!gameOver) return;
+    if (showGameOverModal) setShowGameOverModal(false);
+    resetBoard(gameId!);
   };
 
   const copyLink = () => {
@@ -78,25 +82,15 @@ const Board: React.FC = () => {
 
   const opposingPlayerStatus = getOpposingPlayerStatus();
 
-  const [showGameOverModal, setShowGameOverModal] = useState<boolean>(false);
-
-  const gameOver = (
-    gameState === 'ended-white-win'
-    || gameState === 'ended-black-win'
-    || gameState === 'ended-draw'
-  );
-
-  useEffect(() => {
-    if (gameOver) setShowGameOverModal(true);
-  }, [gameOver])
-
   interface ActionButtons {
     [key: string]: {
       key: string;
       icon: React.ReactNode;
       handleClick(): void;
       active: boolean;
+      highlight: boolean;
       description: string;
+      disabled: boolean;
     }
   }
 
@@ -106,28 +100,36 @@ const Board: React.FC = () => {
       icon: <FontAwesomeIcon icon={faCheck} />,
       handleClick: () => togglePlayerReady(myColor),
       active: !!(myPlayer?.ready),
-      description: 'Ready to Start'
+      highlight: true,
+      description: 'Ready to Start',
+      disabled: false,
     },
     copy: {
       key: 'copy',
       icon: <FontAwesomeIcon icon={faCopy} />,
       handleClick: copyLink,
+      highlight: false,
       active: false,
-      description: 'Copy Challenge Link'
+      description: 'Copy Challenge Link',
+      disabled: false,
     },
-    newGame: {
-      key: 'newGame',
+    reset: {
+      key: 'reset',
       icon: <FontAwesomeIcon icon={faRetweet} />,
-      handleClick: createNewGame,
+      handleClick: resetGame,
+      highlight: false,
       active: false,
-      description: 'Create New Game',
+      description: 'Reset Game',
+      disabled: !gameOver,
     },
     home: {
       key: 'home',
       icon: <FontAwesomeIcon icon={faHouse} />,
       handleClick: goHome,
+      highlight: false,
       active: false,
-      description: 'Return Home'
+      description: 'Return Home',
+      disabled: false,
     },
   };
 
@@ -153,6 +155,8 @@ const Board: React.FC = () => {
       icon={button.icon}
       onClick={button.handleClick}
       active={button.active}
+      disabled={button.disabled}
+      highlight={button.highlight}
       onMouseOver={() => {
         if (activeTip === button.description) return;
         setActiveTip(button.description);

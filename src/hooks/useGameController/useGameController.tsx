@@ -5,10 +5,11 @@ import { useFirebase } from "../useFirebase/useFirebase";
 
 interface GameContextValues {
   game: Board,
-  gameState: 'not-started' | 'playing' | 'ended-white-win' | 'ended-black-win' | 'ended-draw' |undefined,
+  gameState: 'not-started' | 'playing' | 'ended-white-win' | 'ended-black-win' | 'ended-draw' | undefined,
+  gameOver: boolean;
   movePiece(piece: Piece, currentSquare: BoardSquare, targetSquare: BoardSquare, gameId: string): void;
   promotePawn(square: BoardSquare, promoteTo: PieceTypes.QUEEN | PieceTypes.ROOK | PieceTypes.BISHOP | PieceTypes.KNIGHT): void;
-  resetBoard(): void;
+  resetBoard(gameId: string): void;
 }
 
 const GameContext = createContext<GameContextValues | undefined>(undefined);
@@ -18,11 +19,25 @@ interface GameProviderProps {
 }
 
 export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
-  const { postToMovesFirebase, postWinnerToFirebase, lastMove, myColor, currentGame } = useFirebase();
+  const {
+    postToMovesFirebase,
+    postWinnerToFirebase,
+    resetFirebaseGame,
+    resetLocalCountdown,
+    lastMove,
+    myColor,
+    currentGame,
+  } = useFirebase();
 
   const { board } = generateBoard();
   const [game, setGame] = useState(board);
   const gameState = currentGame?.status;
+
+  const gameOver = (
+    gameState === 'ended-white-win'
+    || gameState === 'ended-black-win'
+    || gameState === 'ended-draw'
+  );
 
   const checkForWinCondition = (targetSquare: BoardSquare) => {
     if (targetSquare.piece && targetSquare.piece.name === PieceTypes.KING) {
@@ -98,6 +113,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
 
     // shovel latest move of opposite color from firebase into state
     useEffect(() => {
+      if (!Array.isArray(lastMove) || !lastMove) return;
       const moveColor = lastMove.find((move) => move.piece)?.piece?.color;
       if (moveColor === myColor) return;
       lastMove.forEach((move) => {
@@ -142,9 +158,16 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     }));
   }, [game]);
 
-  const resetBoard = () => {
+  // when the opponent triggers a reset, reset the game
+  useEffect(() => {
+    console.log('resetting local game state...')
+    resetLocalCountdown();
     setGame(board);
-    // setGameState(GameStates.NOT_STARTED);
+  }, [currentGame?.resetTrigger]);
+
+  const resetBoard = (gameId?: string) => {
+    setGame(board);
+    resetFirebaseGame(gameId!);
   };
 
   const promotePawn = useCallback((square: BoardSquare, promoteTo: PieceTypes.QUEEN | PieceTypes.ROOK | PieceTypes.BISHOP | PieceTypes.KNIGHT) => {
@@ -465,7 +488,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
   }, [game]);
 
   return (
-    <GameContext.Provider value={{ game, gameState, movePiece, promotePawn, resetBoard }}>
+    <GameContext.Provider value={{ game, gameState, gameOver, movePiece, promotePawn, resetBoard }}>
       {children}
     </GameContext.Provider>
   );

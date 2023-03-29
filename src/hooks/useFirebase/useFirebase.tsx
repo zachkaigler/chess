@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { initializeApp } from 'firebase/app';
 import { useObjectVal } from 'react-firebase-hooks/database';
-import { getDatabase, ref, set, onChildAdded, push, remove, DatabaseReference } from 'firebase/database';
+import { getDatabase, ref, set, onChildAdded, push, remove, DatabaseReference, onValue, get } from 'firebase/database';
 import { getAuth, signInAnonymously, signOut, User, onAuthStateChanged, Auth } from 'firebase/auth';
 import { BoardSquare } from "../../game/game";
 
@@ -18,9 +18,11 @@ const firebaseConfig = {
 interface FirebaseContextValues {
   postToMovesFirebase(moves: BoardSquare[], gameUid?: string): void;
   postWinnerToFirebase(winner: 'white' | 'black' | 'draw'): void;
+  resetFirebaseGame(gameId: string): void;
   createGame(): Promise<string | null | undefined>;
   togglePlayerReady(playerColor: 'white' | 'black'): void;
   cleanUpGame(): Promise<void>;
+  resetLocalCountdown(): void;
   lastMove: BoardSquare[];
   countdown: number;
   whitePlayer: Player | undefined,
@@ -44,10 +46,11 @@ type Player = {
 
 interface Game {
   uid: string;
-  status: 'not-started' | 'playing' | 'ended-white-win' | 'ended-black-win';
+  status: 'not-started' | 'playing' | 'ended-white-win' | 'ended-black-win' | 'ended-draw';
   whitePlayer?: Player;
   blackPlayer?: Player;
   moves: BoardSquare[];
+  resetTrigger: boolean;
 }
 
 export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, gameId }) => {
@@ -67,6 +70,9 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, ga
       !currentGame || cgError
     )
   );
+
+  const resetTriggerDbPath = `${gamesDbPath}${gameId}/resetTrigger/`;
+  const resetTriggerRef = ref(db, resetTriggerDbPath);
 
   const movesDbPath = `${currentGameDbPath}moves/`;
   const movesRef = ref(db, movesDbPath);
@@ -113,6 +119,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, ga
     try {
       const newRoomRef = await push(gamesRef, {
         status: 'not-started',
+        resetTrigger: false,
       });
       return newRoomRef.key;
     } catch (e) {
@@ -161,10 +168,12 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, ga
     // update state with the latest posted moves from firebase
     onChildAdded(movesRef, (snapshot) => {
       const newMoves = snapshot.val();
+      if (!newMoves) return;
       setLastMove(newMoves);
     });
-  }, [wpLoading]);
+  }, [wpLoading, gameId]);
 
+  // BUG: some overwriting wonkiness is happening here. still need to find the right solution.
   const cleanUpGame = useCallback(async () => {
     const isWhitePlayer = user?.uid === whitePlayer?.uid;
     const isBlackPlayer = user?.uid === blackPlayer?.uid;
@@ -211,12 +220,38 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, ga
     currentGameDbPath,
   ]);
 
+  const resetLocalCountdown = () => setCountdown(3);
+
   const postToMovesFirebase = async (moves: BoardSquare[], gameUid?: string) => {
     try {
       await push(
         gameUid ? ref(db, `/games/${gameUid}/moves/`) : currentGameRef,
         moves
       );
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const resetFirebaseGame = async (gameUid: string) => {
+    try {
+      const game = (await get(ref(db, `/games/${gameUid}/`))).val();
+
+      resetLocalCountdown();
+      await set(ref(db, `/games/${gameUid}/`), {
+        ...game,
+        status: 'not-started',
+        resetTrigger: !game.resetTrigger,
+        whitePlayer: {
+          ...game.whitePlayer,
+          ready: false,
+        },
+        blackPlayer: {
+          ...game.blackPlayer,
+          ready: false,
+        },
+      });
+      await remove(ref(db, `/games/${gameUid}/moves/`));
     } catch (e) {
       console.error(e);
     }
@@ -235,6 +270,11 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, ga
     <FirebaseContext.Provider value={{
         postToMovesFirebase,
         postWinnerToFirebase,
+        resetFirebaseGame,
+        createGame,
+        cleanUpGame,
+        togglePlayerReady,
+        resetLocalCountdown,
         lastMove,
         currentGame,
         whitePlayer,
@@ -242,10 +282,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, ga
         countdown,
         myColor: getMyColor(),
         bothPlayersReady,
-        createGame,
-        togglePlayerReady,
         invalidGame,
-        cleanUpGame,
       }}>
       {children}
     </FirebaseContext.Provider>
