@@ -45,7 +45,16 @@ const LandingPage: React.FC = () => {
             <BlockButton label='Play Now' onClick={handleCreateGame} />
           </Panel>
           <div className='LandingPage__DemoContainer'>
-            demo here
+          <video
+            width="100%"
+            height="100%"
+            autoPlay
+            loop
+            muted
+            // onCanPlay={() => setLoaded(true)}
+          >
+            <source src='src/assets/demo.mov' type='video/mp4' />
+          </video>
           </div>
         </section>
       </div>
