@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useFirebase } from '../../../../hooks/useFirebase/useFirebase';
 import BlockButton from '../../atoms/BlockButton/BlockButton';
 import Panel from '../../molecules/Panel/Panel';
+import demo from '../../../../assets/demo.mp4';
 import './LandingPage.scss';
 
 const LandingPage: React.FC = () => {
@@ -52,7 +53,7 @@ const LandingPage: React.FC = () => {
             loop
             muted
           >
-            <source src='src/assets/demo.mp4' type='video/mp4' />
+            <source src={demo} type='video/mp4' />
           </video>
           </div>
         </section>
