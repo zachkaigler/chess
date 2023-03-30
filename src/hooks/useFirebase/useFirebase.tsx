@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { initializeApp } from 'firebase/app';
 import { useObjectVal } from 'react-firebase-hooks/database';
-import { getDatabase, ref, set, onChildAdded, push, remove, DatabaseReference, onValue, get } from 'firebase/database';
+import { getDatabase, ref, set, onChildAdded, push, remove, DatabaseReference, onChildRemoved, get } from 'firebase/database';
 import { getAuth, signInAnonymously, signOut, User, onAuthStateChanged, Auth } from 'firebase/auth';
 import { BoardSquare } from "../../game/game";
 
@@ -71,9 +71,6 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, ga
     )
   );
 
-  const resetTriggerDbPath = `${gamesDbPath}${gameId}/resetTrigger/`;
-  const resetTriggerRef = ref(db, resetTriggerDbPath);
-
   const movesDbPath = `${currentGameDbPath}moves/`;
   const movesRef = ref(db, movesDbPath);
 
@@ -106,8 +103,13 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, ga
   }, [bothPlayersReady, countdown]);
 
   const getMyColor = (): 'white' | 'black' => {
-    if (user && whitePlayer) return user.uid === whitePlayer.uid ? 'white' : 'black';
-    return 'white';
+    switch (user?.uid) {
+      case whitePlayer?.uid:
+        return 'white';
+      case blackPlayer?.uid:
+        return 'black';
+      default: return 'white';
+    }
   };
 
   const togglePlayerReady = (playerColor: 'white' | 'black') => {
@@ -127,11 +129,14 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, ga
     }
   };
 
+  const [preventNewPlayerAssign, setPreventNewPlayerAssign] = useState<boolean>(false);
+
   // when a user loads up a new game, add them as one of the players in the game
   useEffect(() => {
     if (cgLoading || !user) return;
     if (!gameId || invalidGame) return;
     if (whitePlayer && blackPlayer) return;
+    if (preventNewPlayerAssign) return;
 
     const isWhitePlayer = user.uid === whitePlayer?.uid;
     const isBlackPlayer = user.uid === blackPlayer?.uid;
@@ -173,22 +178,42 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, ga
     });
   }, [wpLoading, gameId]);
 
-  // BUG: some overwriting wonkiness is happening here. still need to find the right solution.
   const cleanUpGame = useCallback(async () => {
-    const isWhitePlayer = user?.uid === whitePlayer?.uid;
-    const isBlackPlayer = user?.uid === blackPlayer?.uid;
-    setCountdown(3);
-    if ((isWhitePlayer && !blackPlayer) || (isBlackPlayer && !whitePlayer)) await remove(ref(db, currentGameDbPath));
-    if (isWhitePlayer) await remove(ref(db, whitePlayerDbPath));
-    if (isBlackPlayer) await remove(ref(db, blackPlayerDbPath));
+    try {
+      const game = (await get(ref(db, `/games/${gameId}/`))).val();
+      const isWhitePlayer = user?.uid === whitePlayer?.uid;
+      const isBlackPlayer = user?.uid === blackPlayer?.uid;
+      setPreventNewPlayerAssign(true);
+      if (countdown !== 3) resetLocalCountdown();
+      if (isWhitePlayer) {
+        if (!game.blackPlayer) {
+          await remove(currentGameRef);
+          return;
+        }
+        await remove(whitePlayerRef);
+      };
+      if (isBlackPlayer) {
+        if (!game.whitePlayer) {
+          await remove(currentGameRef);
+          return;
+        };
+        await remove(blackPlayerRef);
+      };
+      setPreventNewPlayerAssign(false);
+    } catch (e) {
+      console.error(e);
+    }
   }, [
+    gameId,
     user,
     db,
+    countdown,
     whitePlayer,
-    whitePlayerDbPath,
+    whitePlayerRef,
     blackPlayer,
-    blackPlayerDbPath,
-    currentGameDbPath
+    blackPlayerRef,
+    currentGameRef,
+    preventNewPlayerAssign,
   ]);
 
   const cleanUpData = useCallback(async () => {
@@ -236,7 +261,6 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, ga
   const resetFirebaseGame = async (gameUid: string) => {
     try {
       const game = (await get(ref(db, `/games/${gameUid}/`))).val();
-
       resetLocalCountdown();
       await set(ref(db, `/games/${gameUid}/`), {
         ...game,

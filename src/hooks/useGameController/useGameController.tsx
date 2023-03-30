@@ -160,7 +160,6 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
 
   // when the opponent triggers a reset, reset the game
   useEffect(() => {
-    console.log('resetting local game state...')
     resetLocalCountdown();
     setGame(board);
   }, [currentGame?.resetTrigger]);
