@@ -6,6 +6,7 @@
   grid-template-rows: repeat(2, max-content);
   position: absolute;
   z-index: 5;
+  cursor: pointer;
   @include dropshadow-lead;
 
   &.black-player {

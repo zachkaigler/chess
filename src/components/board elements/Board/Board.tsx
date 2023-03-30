@@ -6,12 +6,26 @@ import { convertBoardToMatrix } from '../../../game/game';
 import { useCssTransition } from '../../../hooks/useCssTransition/useCssTransition';
 import { useFirebase } from '../../../hooks/useFirebase/useFirebase';
 import { useGameController } from '../../../hooks/useGameController/useGameController';
+import { useAlert } from '../../../hooks/useTools/useTools';
 import IconButton from '../../ui/atoms/IconButton/IconButton';
 import GameOver from '../../ui/molecules/GameOver/GameOver';
 import Modal from '../../ui/organisms/Modal/Modal';
 import BoardSquareTile from '../BoardSquareTile/BoardSquareTile';
-import { useAlert } from '../../../hooks/useTools/useTools';
+import Loader from '../../ui/atoms/Loader/Loader';
+import InvalidGamePage from '../../ui/templates/InvalidGamePage/InvalidGamePage';
 import './Board.scss';
+
+interface ActionButtons {
+  [key: string]: {
+    key: string;
+    icon: React.ReactNode;
+    handleClick(): void;
+    active: boolean;
+    highlight: boolean;
+    description: string;
+    disabled: boolean;
+  }
+}
 
 const Board: React.FC = () => {
   const {
@@ -24,6 +38,7 @@ const Board: React.FC = () => {
     bothPlayersReady,
     countdown,
     currentGame,
+    cgLoading,
   } = useFirebase();
   const navigate = useNavigate();
   const { game: gameId } = useParams();
@@ -81,18 +96,6 @@ const Board: React.FC = () => {
   };
 
   const opposingPlayerStatus = getOpposingPlayerStatus();
-
-  interface ActionButtons {
-    [key: string]: {
-      key: string;
-      icon: React.ReactNode;
-      handleClick(): void;
-      active: boolean;
-      highlight: boolean;
-      description: string;
-      disabled: boolean;
-    }
-  }
 
   const buttonOpts: ActionButtons = {
     ready: {
@@ -169,8 +172,8 @@ const Board: React.FC = () => {
     />
   ));
 
-  // TODO: make this look nice
-  if (invalidGame && !cleaningUp) return <p style={{ color: 'white' }}>Invalid game.</p>
+  if (cgLoading) return <Loader />;
+  if (invalidGame && !cleaningUp) return <InvalidGamePage />;
 
   return (
     <>
@@ -211,7 +214,6 @@ const Board: React.FC = () => {
             )}
             { myColor === 'white' && <>{buttons}</> }
             {/* TODO: these tips jack up spacing when screen is small. fix */}
-            {/* TODO: transition out isn't working */}
             { myColor === 'white' && <p className={cn} style={styles}>{activeTip}</p> }
           </div>
         </div>

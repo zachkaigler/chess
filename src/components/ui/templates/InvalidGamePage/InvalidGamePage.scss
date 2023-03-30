@@ -1,0 +1,45 @@
+@import '../../../../styles/colors.scss',
+'../../../../styles/spacing.scss',
+'../../../../styles/shadows.scss',
+'../../../../styles/typography.scss',
+'../../../../styles/breakpoints.scss';
+
+.InvalidGamePage__Page {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.InvalidGamePage__Main {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+}
+
+.InvalidGamePage__BG {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  grid-area: 1 / 1 / 2 / 2;
+
+  svg {
+    path {
+      fill: $red-dark;
+    }
+  }
+}
+
+h1 {
+  margin-top: 35%;
+  color: $white-dark;
+  @include text-3D($black-lead);
+  grid-area: 1 / 1 / 2 / 2;
+}
+
+.InvalidGamePage__ButtonContainer {
+  width: 20%;
+  min-width: 20rem;
+}

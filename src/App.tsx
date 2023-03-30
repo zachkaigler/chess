@@ -10,14 +10,9 @@ import Alert from './hooks/useTools/useTools';
 import './App.scss';
 
 // BUG: sometimes rooks randomly cover up other pieces? (safari only???? -> TODO: show message on non chrome browsers)
-// TODO: style invalid game screen, game over modal
-// TODO: redesign pieces
-// TODO: record demo for landing page
 // TODO: on each move, post snapshot of full board to firebase. if user leaves and rejoins mid game, update game state w/ snapshot
-// TODO: fix orientation of black promotion panel
-// TODO: display opponents cooldown (do this locally, not via firebase)
+// TODO: show modal when user is not on chrome
 // TODO: optimize rendering
-// TODO: when a piece with a high cooldown captures a lower one, cooldown meter should jump to top and not slowly refill
 
 const withGameWrapper = (component: React.ReactNode) => (
   <GameWrapper>

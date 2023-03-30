@@ -23,7 +23,6 @@ const PromotionPanel: React.FC<PromotionPanelProps> = ({ square }) => {
     return 'right';
   };
 
-  // TODO: realign this stuff for black so queen option is on square where pawn landed
   const anchor = getPanelAnchor();
   const color = square.id >= 57 && square.id <= 64 ? 'white' : 'black';
   const alignment = color === 'black' ? 'bottom' : 'top';
@@ -58,10 +57,14 @@ const PromotionPanel: React.FC<PromotionPanelProps> = ({ square }) => {
 
   return (
     <div className={`PromotionPanel__Container ${anchor === 'left' ? 'anchor-left' : 'anchor-right'} ${color === 'black' ? 'bottom' : 'top'} ${myColor === 'black' ? 'black-player' : ''}`}>
-      {alignment === 'top' && anchor === 'right' && optsTopRight}
-      {alignment === 'top' && anchor === 'left' && optsTopLeft}
-      {alignment === 'bottom' && anchor === 'right' && optsBtmRight}
-      {alignment === 'bottom' && anchor === 'left' && optsBtmLeft}
+      {alignment === 'top' && anchor === 'right' && myColor === 'white' && optsTopRight}
+      {alignment === 'top' && anchor === 'right' && myColor === 'black' && optsTopRight.reverse()}
+      {alignment === 'top' && anchor === 'left' && myColor === 'white' && optsTopLeft}
+      {alignment === 'top' && anchor === 'left' && myColor === 'black' && optsTopLeft.reverse()}
+      {alignment === 'bottom' && anchor === 'right' && myColor === 'white' && optsBtmRight}
+      {alignment === 'bottom' && anchor === 'right' && myColor === 'black' && optsBtmRight.reverse()}
+      {alignment === 'bottom' && anchor === 'left' && myColor === 'white' && optsBtmLeft}
+      {alignment === 'bottom' && anchor === 'left' && myColor === 'black' && optsBtmLeft.reverse()}
     </div>
   );
 };

@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { initializeApp } from 'firebase/app';
 import { useObjectVal } from 'react-firebase-hooks/database';
-import { getDatabase, ref, set, onChildAdded, push, remove, DatabaseReference, onChildRemoved, get } from 'firebase/database';
+import { getDatabase, ref, set, onChildAdded, push, remove, DatabaseReference, get } from 'firebase/database';
 import { getAuth, signInAnonymously, signOut, User, onAuthStateChanged, Auth } from 'firebase/auth';
 import { BoardSquare } from "../../game/game";
 
@@ -28,6 +28,7 @@ interface FirebaseContextValues {
   whitePlayer: Player | undefined,
   blackPlayer: Player | undefined,
   currentGame: Game | undefined,
+  cgLoading: boolean;
   myColor: 'white' | 'black';
   bothPlayersReady: boolean;
   invalidGame: boolean;
@@ -301,6 +302,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, ga
         resetLocalCountdown,
         lastMove,
         currentGame,
+        cgLoading,
         whitePlayer,
         blackPlayer,
         countdown,

@@ -18,7 +18,7 @@ type PieceIconProps = {
 
 export type ChildIconProps = {
   color: string;
-  dragRef: ConnectDragSource | null;
+  dragRef?: ConnectDragSource | null;
 } & HTMLAttributes<HTMLDivElement>;
 
 const PieceIcon: React.FC<PieceIconProps> = ({ square, onCooldown, ...props }) => {
