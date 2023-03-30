@@ -13,7 +13,9 @@ const InvalidGamePage: React.FC = () => {
         <div className='InvalidGamePage__BG'>
           <KnightIcon color='white' />
         </div>
-        <h1>Invalid game.</h1>
+        <div className='InvalidGamePage__Header'>
+          <h1>Invalid game.</h1>
+        </div>
       </div>
       <div className='InvalidGamePage__ButtonContainer'>
         <BlockButton label='Back Home' onClick={() => navigate('/')} />
