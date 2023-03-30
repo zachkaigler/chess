@@ -8,6 +8,7 @@
   height: 100vh;
   height: 100dvh;
   background-color: $black-light;
+  background: linear-gradient(180deg, $black-lead 0%, $black-light 30%);
   color: $white-lead;
   display: flex;
   flex-direction: column;
